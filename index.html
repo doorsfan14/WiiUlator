@@ -63,7 +63,7 @@ footer{padding:34px 0 45px;border-top:1px solid var(--line);display:flex;justify
 <section class="container section" id="status">
 <div class="section-label reveal" data-reveal>Status</div>
 <h2 class="reveal" data-reveal>In development.</h2>
-<p class="section-intro reveal" data-reveal>There isn't a public release yet. The emulator core, graphics, controls and system emulation are still being worked on.</p>
+<p class="section-intro reveal" data-reveal>There isn't a public release yet. The emulator core, graphics, controls and system emulation are still being worked on. Development builds are intended for JIT-enabled testing.</p>
 <div class="status reveal stagger" data-reveal>
 <div class="status-card gloss" style="--i:0"><h3>No public build yet.</h3><p>The download button will be enabled when a release is ready.</p><a class="button primary" href="#" aria-disabled="true" onclick="return false">Download <span class="soon">SOON</span></a></div>
 <div class="status-card gloss" style="--i:1"><h3>Open source.</h3><p>WiiUlator is developed by Team Celeste and released under GPL-3.0-or-later.</p></div>
@@ -77,9 +77,10 @@ footer{padding:34px 0 45px;border-top:1px solid var(--line);display:flex;justify
 <details class="gloss"><summary>When will WiiUlator be released?</summary><p>There isn't a release date yet. The project is still being developed.</p></details>
 <details class="gloss"><summary>What devices will it support?</summary><p>The project is planned for iOS and iPadOS 16.0 or later, macOS, Android, Windows and Linux.</p></details>
 <details class="gloss"><summary>Which graphics APIs will it use?</summary><p>Apple platforms will use Metal. Vulkan is planned for Android, Windows and Linux.</p></details>
-<details class="gloss"><summary>Will it be on the App Store?</summary><p>That's the plan for the normal iOS and iPadOS App Store build. Development and testing builds may be distributed separately.</p></details>
+<details class="gloss"><summary>Will it be on the App Store?</summary><p>There is no current App Store release commitment. If Apple permits native JIT support for WiiUlator, an App Store build can be reconsidered; development builds are distributed separately.</p></details>
 <details class="gloss"><summary>Do I need to provide Wii U system files?</summary><p>Some Wii U system software may be needed for emulation. WiiUlator will not bundle Nintendo's proprietary system files with the project.</p></details>
-<details class="gloss"><summary>Will games be included?</summary><p>No. WiiUlator does not include copyrighted Wii U games. You should only use games and files you are legally entitled to use.</p></details>
+<details class="gloss"><summary>What game formats can I import?</summary><p>WiiUlator can import RPX/ELF game folders and recognizes ZIP, WUA, WUD and WUX containers in the library. Container-backed launching is still being implemented.</p></details>
+<details class="gloss"><summary>Will games be included?</summary><p>No. WiiUlator does not include copyrighted Wii U games. Use only games and files you are legally entitled to use.</p></details>
 <details class="gloss"><summary>Is WiiUlator open source?</summary><p>Yes. WiiUlator's own code is released under GPL-3.0-or-later.</p></details>
 </div>
 </section>
