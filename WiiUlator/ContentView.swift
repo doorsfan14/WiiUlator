@@ -4,6 +4,17 @@ import Darwin
 import UniformTypeIdentifiers
 
 
+private enum WiiUFileTypes {
+    static let zip = UTType(filenameExtension: "zip") ?? .data
+    static let wua = UTType(filenameExtension: "wua") ?? .data
+    static let wud = UTType(filenameExtension: "wud") ?? .data
+    static let wux = UTType(filenameExtension: "wux") ?? .data
+    static let rpx = UTType(filenameExtension: "rpx") ?? .data
+    static let elf = UTType(filenameExtension: "elf") ?? .data
+
+    static let supported: [UTType] = [zip, wua, wud, wux, rpx, elf]
+}
+
 private enum WiiUlatorBuildInfo {
     static let version = "1.0"
     static let identifier = "26W002"
@@ -133,7 +144,7 @@ struct LibraryView: View {
             )
             .fileImporter(
                 isPresented: $showingImporter,
-                allowedContentTypes: [.data, .folder],
+                allowedContentTypes: WiiUFileTypes.supported,
                 allowsMultipleSelection: false
             ) { result in
                 switch result {
