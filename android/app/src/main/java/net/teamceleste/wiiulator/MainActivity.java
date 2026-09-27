@@ -36,9 +36,7 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
         prefs = getSharedPreferences("wiiulator", MODE_PRIVATE);
-        getWindow().setStatusBarColor(BG);
-        getWindow().setNavigationBarColor(Color.BLACK);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         buildShell();
         showLibrary();
     }
@@ -96,7 +94,7 @@ public final class MainActivity extends Activity {
         nav.setBackgroundColor(Color.rgb(11,18,28));
 
         String[] labels = {"Library","Favorites","Settings"};
-        String[] glyphs = {"▦","★","⚙"};
+        String[] glyphs = {"⌂","★","⚙"};
         for(int i=0;i<3;i++){
             final int tab=i;
             LinearLayout item=lpRow();
@@ -199,7 +197,7 @@ public final class MainActivity extends Activity {
         star.setOnClickListener(view->{if(favorites.contains(g.name))favorites.remove(g.name);else favorites.add(g.name);showLibrary();});
         row.addView(star,new LinearLayout.LayoutParams(dp(50),dp(58)));
         c.addView(row);
-        Button play=primaryButton("OPEN GAME");play.setOnClickListener(view->Toast.makeText(this,"Game launch will use the emulator core.",Toast.LENGTH_SHORT).show());
+        Button play=primaryButton("OPEN GAME");play.setOnClickListener(view->{Intent i=new Intent(this,EmulatorActivity.class);startActivity(i);});
         LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-1,dp(42));pp.topMargin=dp(12);c.addView(play,pp);
         LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);cp.bottomMargin=dp(12);content.addView(c,cp);
     }
@@ -292,13 +290,13 @@ public final class MainActivity extends Activity {
 
     private void showGraphics(){
         subHeader("Graphics");
-        sectionTitle("GRAPHICS BACKEND");addSpinner("Backend",new String[]{"Metal","Vulkan (Experimental)"},"graphicsBackend","Metal");
+        sectionTitle("GRAPHICS BACKEND");addSpinner("Backend",new String[]{"Vulkan","OpenGL ES (Compatibility)"},"graphicsBackend","Vulkan");
         sectionTitle("DISPLAY");addSpinner("Aspect Ratio",new String[]{"16:9","4:3"},"displayAspectRatio","16:9");
         sectionTitle("GAME RESOLUTION");addSpinner("Resolution",new String[]{"Native","1280 × 720","1600 × 900","1920 × 1080","2560 × 1440"},"gameResolution","Native");
         sectionTitle("RENDERING");addSpinner("Quality",new String[]{"Auto","Low","Medium","High"},"graphicsQuality","Auto");
         addSwitch("Performance Mode",false,"performanceMode");
         addSwitch("30 FPS = Full Emulation Speed",true,"thirtyFPSFullSpeed");
-        TextView note=text("Metal is the primary graphics backend. Vulkan is experimental.",12,MUTED);note.setPadding(dp(8),dp(10),dp(8),dp(10));content.addView(note);
+        TextView note=text("Vulkan is the primary Android graphics backend.",12,MUTED);note.setPadding(dp(8),dp(10),dp(8),dp(10));content.addView(note);
     }
 
     private void showControls(){
@@ -327,7 +325,7 @@ public final class MainActivity extends Activity {
         subHeader("System");sectionTitle("SYSTEM");addSwitch("Auto Save",true,"autoSave");addSwitch("Confirm Before Exit",true,"confirmExit");
         sectionTitle("MEMORY");int ram=prefs.getInt("maximumRAMMB",512);rowLabel("Maximum RAM",ram+" MB");rowLabel("Recommended","512 MB");
         TextView jit=text("JIT     "+(Build.VERSION.SDK_INT>=24?"Available":"Unavailable"),15,TEXT);jit.setPadding(dp(14),dp(15),dp(14),dp(15));jit.setBackground(bg(PANEL,dp(14)));content.addView(jit);
-        sectionTitle("PERFORMANCE");rowLabel("Architecture","ARM64");rowLabel("Graphics","Vulkan / Android");rowLabel("Minimum Android","Android 8.0");
+        sectionTitle("PERFORMANCE");rowLabel("Architecture","ARM64");rowLabel("Graphics","Vulkan");rowLabel("Minimum Android","Android 8.0");
     }
 
     private void showUpdate(){
