@@ -12,7 +12,7 @@ import java.io.*;
 import java.util.*;
 
 public final class MainActivity extends Activity {
-    private final EmulatorCore core = new EmulatorCore();
+    private EmulatorCore core;
     private LinearLayout page, content;
     private int selectedTab = 0;
     private final ArrayList<Game> games = new ArrayList<>();
@@ -36,6 +36,7 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
         prefs = getSharedPreferences("wiiulator", MODE_PRIVATE);
+        core = new EmulatorCore();
         setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         buildShell();
         showLibrary();
