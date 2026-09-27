@@ -29,29 +29,62 @@ struct ContentView: View {
 }
 
 struct LibraryView: View {
+    @StateObject private var library = GameLibraryStore.shared
     @State private var showingImporter = false
+    @State private var searchText = ""
+
+    private var filteredGames: [LibraryGame] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return library.games }
+        return library.games.filter {
+            $0.name.localizedCaseInsensitiveContains(query) ||
+            $0.provider.localizedCaseInsensitiveContains(query)
+        }
+    }
 
     var body: some View {
         NavigationStack {
-            List {
-                NavigationLink {
-                    DemoGameView()
-                } label: {
-                    HStack(spacing: 12) {
-                        GameIconView()
-                            .frame(width: 64, height: 64)
+            Group {
+                if filteredGames.isEmpty {
+                    ContentUnavailableView(
+                        searchText.isEmpty ? "No Games" : "No Results",
+                        systemImage: searchText.isEmpty ? "gamecontroller" : "magnifyingglass",
+                        description: Text(searchText.isEmpty ? "Import a Wii U game to get started." : "Try a different search.")
+                    )
+                } else {
+                    List {
+                        ForEach(filteredGames) { game in
+                            NavigationLink {
+                                DemoGameView(game: game)
+                            } label: {
+                                HStack(spacing: 12) {
+                                    GameIconView(game: game)
+                                        .frame(width: 64, height: 64)
 
-                        VStack(alignment: .leading, spacing: 4) {
-                            LabeledContent("Name", value: "Mario Kart 8")
-                            LabeledContent("Provider", value: "Nintendo")
-                            LabeledContent("Version", value: "1.0")
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(game.name)
+                                            .font(.headline)
+
+                                        LabeledContent("Provider", value: game.provider)
+                                            .font(.subheadline)
+
+                                        if !game.version.isEmpty {
+                                            LabeledContent("Version", value: game.version)
+                                                .font(.subheadline)
+                                        }
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                            }
                         }
-                        .font(.subheadline)
+                        .onDelete { offsets in
+                            library.remove(at: offsets, from: filteredGames)
+                        }
                     }
-                    .padding(.vertical, 4)
                 }
             }
             .navigationTitle("Library")
+            .searchable(text: $searchText, prompt: "Search games")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
@@ -66,35 +99,57 @@ struct LibraryView: View {
                 isPresented: $showingImporter,
                 allowedContentTypes: [.data, .folder],
                 allowsMultipleSelection: false
-            ) { _ in
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    if let url = urls.first {
+                        library.importGame(from: url)
+                    }
+                case .failure:
+                    break
+                }
             }
             .safeAreaInset(edge: .bottom) {
-                Text("Demo entry — no game files are included with WiiUlator.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .padding(.vertical, 6)
+                HStack {
+                    Image(systemName: "folder")
+                    Text("Games: Apps/Games")
+                    Spacer()
+                    Text("\(library.games.count)")
+                        .foregroundStyle(.secondary)
+                }
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal)
+                .padding(.vertical, 6)
+            }
+            .onAppear {
+                library.prepareGamesFolder()
             }
         }
     }
 }
 
 struct GameIconView: View {
-    private let iconURL = URL(string: "https://art.gametdb.com/wiiu/icon/US/AMKE01.png")!
+    let game: LibraryGame
+
+    private var iconURL: URL? {
+        guard let titleID = game.titleID, !titleID.isEmpty else { return nil }
+        return URL(string: "https://art.gametdb.com/wiiu/icon/US/\\(titleID).png")
+    }
 
     var body: some View {
-        AsyncImage(url: iconURL) { phase in
-            switch phase {
-            case .success(let image):
-                image
-                    .resizable()
-                    .scaledToFill()
-            default:
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(.secondary.opacity(0.18))
-                    .overlay {
-                        Image(systemName: "gamecontroller.fill")
-                            .foregroundStyle(.secondary)
+        Group {
+            if let iconURL {
+                AsyncImage(url: iconURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable().scaledToFill()
+                    default:
+                        placeholder
                     }
+                }
+            } else {
+                placeholder
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -103,9 +158,20 @@ struct GameIconView: View {
                 .stroke(.secondary.opacity(0.18), lineWidth: 1)
         }
     }
+
+    private var placeholder: some View {
+        RoundedRectangle(cornerRadius: 10)
+            .fill(.secondary.opacity(0.18))
+            .overlay {
+                Image(systemName: "gamecontroller.fill")
+                    .foregroundStyle(.secondary)
+            }
+    }
 }
 
 struct DemoGameView: View {
+    let game: LibraryGame
+    @AppStorage("debugOverlayEnabled") private var debugOverlayEnabled = false
     @Environment(\.dismiss) private var dismiss
     @State private var showingControls = true
     @State private var showingStopConfirmation = false
@@ -118,6 +184,14 @@ struct DemoGameView: View {
             if showingControls {
                 SimpleTouchControls()
                     .transition(.opacity)
+            }
+
+            if debugOverlayEnabled {
+                DebugOverlay()
+                    .padding(.top, 10)
+                    .padding(.leading, 10)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .allowsHitTesting(false)
             }
 
             VStack {
@@ -428,6 +502,67 @@ struct SettingsView: View {
     }
 }
 
+struct DebugSettingsView: View {
+    @AppStorage("debugOverlayEnabled") private var debugOverlayEnabled = false
+    @AppStorage("debugLoggingEnabled") private var debugLoggingEnabled = false
+
+    var body: some View {
+        Form {
+            Section("Developer Tools") {
+                Toggle("Performance Overlay", isOn: $debugOverlayEnabled)
+                Toggle("Debug Logging", isOn: $debugLoggingEnabled)
+            }
+
+            Section("Overlay") {
+                LabeledContent("Display FPS", value: "Live")
+                LabeledContent("Emulation Speed", value: "100%")
+                LabeledContent("Frame Time", value: "Live")
+                LabeledContent("Renderer", value: "Metal")
+                LabeledContent("CPU", value: "ARM64")
+                LabeledContent("JIT Support", value: JITStatus.isEnabled ? "Available" : "Unavailable")
+            }
+
+            Section {
+                Text("The performance overlay appears over the game while emulating. Metrics become emulator-backed as the CPU, GPU, audio, and frame scheduler are implemented.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .navigationTitle("Debugging")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct DebugOverlay: View {
+    @State private var displayFPS = 60.0
+    @State private var frameTime = 16.67
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text("WiiUlator DEBUG")
+                .font(.system(size: 11, weight: .bold, design: .monospaced))
+            Text(String(format: "Display FPS  %.1f", displayFPS))
+            Text(String(format: "Frame Time   %.2f ms", frameTime))
+            Text("Emulation    100.0%")
+            Text("Renderer     Metal")
+            Text("CPU          ARM64")
+            Text(JITStatus.isEnabled ? "JIT          available" : "JIT          unavailable")
+        }
+        .font(.system(size: 10, design: .monospaced))
+        .foregroundStyle(.white)
+        .padding(8)
+        .background(.black.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(500))
+                let fps = UIScreen.main.maximumFramesPerSecond > 0 ? Double(UIScreen.main.maximumFramesPerSecond) : 60
+                displayFPS = fps
+                frameTime = 1000.0 / fps
+            }
+        }
+    }
+}
+
 struct GraphicsSettingsView: View {
     @AppStorage("graphicsBackend") private var graphicsBackend = "Metal"
     @AppStorage("graphicsQuality") private var graphicsQuality = "Auto"
@@ -591,6 +726,128 @@ struct SystemSettingsView: View {
     }
 }
 
+struct GamesFolderView: View {
+    private var gamesURL: URL { GameLibraryStore.gamesFolderURL }
+
+    var body: some View {
+        Form {
+            Section("Location") {
+                LabeledContent("Folder", value: "Apps/Games")
+                Text(gamesURL.path)
+                    .font(.footnote.monospaced())
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+            }
+
+            Section {
+                Text("Imported games are copied into WiiUlator's app container at Documents/Apps/Games. Game files are not included with WiiUlator.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .navigationTitle("Games Folder")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            GameLibraryStore.shared.prepareGamesFolder()
+        }
+    }
+}
+
+struct LibraryGame: Identifiable, Codable, Hashable {
+    let id: UUID
+    var name: String
+    var provider: String
+    var version: String
+    var titleID: String?
+    var path: String
+
+    init(id: UUID = UUID(), name: String, provider: String = "Unknown", version: String = "", titleID: String? = nil, path: String) {
+        self.id = id
+        self.name = name
+        self.provider = provider
+        self.version = version
+        self.titleID = titleID
+        self.path = path
+    }
+}
+
+@MainActor
+final class GameLibraryStore: ObservableObject {
+    static let shared = GameLibraryStore()
+    private let key = "wiiulator.library.games"
+
+    @Published private(set) var games: [LibraryGame] = []
+
+    static var gamesFolderURL: URL {
+        let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return documents.appendingPathComponent("Apps/Games", isDirectory: true)
+    }
+
+    private init() {
+        load()
+        prepareGamesFolder()
+    }
+
+    func prepareGamesFolder() {
+        try? FileManager.default.createDirectory(at: Self.gamesFolderURL, withIntermediateDirectories: true)
+    }
+
+    func importGame(from url: URL) {
+        prepareGamesFolder()
+
+        let accessing = url.startAccessingSecurityScopedResource()
+        defer {
+            if accessing { url.stopAccessingSecurityScopedResource() }
+        }
+
+        let destination = Self.gamesFolderURL.appendingPathComponent(url.lastPathComponent, isDirectory: true)
+        var finalDestination = destination
+        if FileManager.default.fileExists(atPath: finalDestination.path) {
+            finalDestination = Self.gamesFolderURL.appendingPathComponent("\(UUID().uuidString)-\(url.lastPathComponent)", isDirectory: true)
+        }
+
+        do {
+            try FileManager.default.copyItem(at: url, to: finalDestination)
+            let displayName = url.deletingPathExtension().lastPathComponent
+            let game = LibraryGame(
+                name: displayName.isEmpty ? url.lastPathComponent : displayName,
+                path: finalDestination.path
+            )
+            games.append(game)
+            save()
+        } catch {
+            // Import failures are intentionally non-fatal; the library remains unchanged.
+        }
+    }
+
+    func remove(at offsets: IndexSet, from visibleGames: [LibraryGame]) {
+        for index in offsets {
+            guard index < visibleGames.count else { continue }
+            let game = visibleGames[index]
+            if let storedIndex = games.firstIndex(where: { $0.id == game.id }) {
+                let url = URL(fileURLWithPath: games[storedIndex].path)
+                try? FileManager.default.removeItem(at: url)
+                games.remove(at: storedIndex)
+            }
+        }
+        save()
+    }
+
+    private func load() {
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let decoded = try? JSONDecoder().decode([LibraryGame].self, from: data) else {
+            return
+        }
+        games = decoded
+    }
+
+    private func save() {
+        if let data = try? JSONEncoder().encode(games) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+}
+
 struct AboutView: View {
     private var deviceInfo: DeviceInfo {
         DeviceInfo.current
@@ -633,7 +890,7 @@ struct AboutView: View {
             }
 
             Section("Game Artwork") {
-                Text("Wii U game artwork can be sourced from GameTDB. Wii U title pages provide the game metadata and artwork database.")
+                Text("WiiUlator uses GameTDB-compatible square Wii U artwork when a title ID is available. Imported games without recognized metadata use a local placeholder until game metadata parsing is implemented.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
