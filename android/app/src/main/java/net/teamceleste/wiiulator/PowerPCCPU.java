@@ -32,5 +32,25 @@ final class PowerPCCPU {
  int sign16(int i){return (short)(i&65535);}
  boolean cond(int i){int bo=i>>>21&31,bi=i>>>16&31;boolean c=(bo&16)!=0||(((cr>>>(31-bi))&1)!=0)==((bo&8)!=0);return c;}
  void branchCond(int i,int cur){if(cond(i)){int bd=(short)(i&0xfffc);pc=((i&2)!=0?bd:cur+bd);}if((i&1)!=0)lr=cur+4;}
- void op31(int i,EmulatorMemory m){int xo=i>>>1&1023,s=i>>>21&31,a=i>>>16&31,b=i>>>11&31;switch(xo){case 266:r[a]=r[s]+r[b];break;case 40:r[a]=r[b]-r[s];break;case 444:r[a]=r[s]|r[b];break;case 316:r[a]=r[s]^r[b];break;case 28:r[a]=r[s]&r[b];break;case 19:r[a]=cr;break;case 24:r[a]=r[s]<<(r[b]&31);break;case 536:r[a]=r[s]>>>(r[b]&31);break;case 534:{int ad=base(a)+r[b];r[s]=Integer.reverseBytes(m.read32(ad));break;}case 662:{int ad=base(a)+r[b];m.write32(ad,Integer.reverseBytes(r[s]));break;}case 339:r[a]=(i>>>16&31)|((i>>>11&31)<<5)==1?xer:((i>>>16&31)|((i>>>11&31)<<5))==8?lr:((i>>>16&31)|((i>>>11&31)<<5))==9?ctr:0;break;default:unsupported=i;}}
+ void op31(int i,EmulatorMemory m){
+  int xo=i>>>1&1023,s=i>>>21&31,a=i>>>16&31,b=i>>>11&31;
+  switch(xo){
+   case 266:r[a]=r[s]+r[b];break;
+   case 40:r[a]=r[b]-r[s];break;
+   case 444:r[a]=r[s]|r[b];break;
+   case 316:r[a]=r[s]^r[b];break;
+   case 28:r[a]=r[s]&r[b];break;
+   case 19:r[a]=cr;break;
+   case 24:r[a]=r[s]<<(r[b]&31);break;
+   case 536:r[a]=r[s]>>>(r[b]&31);break;
+   case 534:{int ad=base(a)+r[b];r[s]=Integer.reverseBytes(m.read32(ad));break;}
+   case 662:{int ad=base(a)+r[b];m.write32(ad,Integer.reverseBytes(r[s]));break;}
+   case 339:{
+    int spr=((i>>>16)&31)|(((i>>>11)&31)<<5);
+    r[a]=spr==1?xer:spr==8?lr:spr==9?ctr:0;
+    break;
+   }
+   default:unsupported=i;
+  }
+ }
 }
