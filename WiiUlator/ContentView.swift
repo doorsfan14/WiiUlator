@@ -46,11 +46,21 @@ struct LibraryView: View {
         NavigationStack {
             Group {
                 if filteredGames.isEmpty {
-                    ContentUnavailableView(
-                        searchText.isEmpty ? "No Games" : "No Results",
-                        systemImage: searchText.isEmpty ? "gamecontroller" : "magnifyingglass",
-                        description: Text(searchText.isEmpty ? "Import a Wii U game to get started." : "Try a different search.")
-                    )
+                    VStack(spacing: 10) {
+                        Image(systemName: searchText.isEmpty ? "gamecontroller" : "magnifyingglass")
+                            .font(.system(size: 34))
+                            .foregroundStyle(.secondary)
+
+                        Text(searchText.isEmpty ? "No Games" : "No Results")
+                            .font(.headline)
+
+                        Text(searchText.isEmpty ? "Import a Wii U game to get started." : "Try a different search.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
                 } else {
                     List {
                         ForEach(filteredGames) { game in
