@@ -25,6 +25,7 @@
         A1000000000000000000000A = { isa = PBXBuildFile; fileRef = A10000000000000000000022; };
         A1000000000000000000000B = { isa = PBXBuildFile; fileRef = A10000000000000000000023; };
         A1000000000000000000000C = { isa = PBXBuildFile; fileRef = A10000000000000000000024; };
+        A1000000000000000000000D = { isa = PBXBuildFile; fileRef = A10000000000000000000071; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -167,6 +168,7 @@
             isa = PBXResourcesBuildPhase;
             buildActionMask = 2147483647;
             files = (
+                A1000000000000000000000D,
             );
             runOnlyForDeploymentPostprocessing = 0;
         };
@@ -266,6 +268,18 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
+        A10000000000000000000071 = {
+            isa = PBXVariantGroup;
+            children = (
+                A10000000000000000000020,
+                A10000000000000000000021,
+                A10000000000000000000022,
+                A10000000000000000000023,
+                A10000000000000000000024,
+            );
+            name = Localizable.strings;
+            sourceTree = "<group>";
+        };
 /* End PBXVariantGroup section */
 
 /* Begin PBXTargetDependency section */
