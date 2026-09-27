@@ -760,14 +760,16 @@ struct LibraryGame: Identifiable, Codable, Hashable {
     var version: String
     var titleID: String?
     var path: String
+    var isDemo: Bool
 
-    init(id: UUID = UUID(), name: String, provider: String = "Unknown", version: String = "", titleID: String? = nil, path: String) {
+    init(id: UUID = UUID(), name: String, provider: String = "Unknown", version: String = "", titleID: String? = nil, path: String, isDemo: Bool = false) {
         self.id = id
         self.name = name
         self.provider = provider
         self.version = version
         self.titleID = titleID
         self.path = path
+        self.isDemo = isDemo
     }
 }
 
@@ -836,6 +838,17 @@ final class GameLibraryStore: ObservableObject {
     private func load() {
         guard let data = UserDefaults.standard.data(forKey: key),
               let decoded = try? JSONDecoder().decode([LibraryGame].self, from: data) else {
+            games = [
+                LibraryGame(
+                    name: "Mario Kart 8",
+                    provider: "Nintendo",
+                    version: "1.0",
+                    titleID: "AMKE01",
+                    path: Self.gamesFolderURL.appendingPathComponent("Demo-Mario-Kart-8").path,
+                    isDemo: true
+                )
+            ]
+            save()
             return
         }
         games = decoded
