@@ -2,10 +2,9 @@ name: Deploy WiiUlator Website
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - "docs/**"
+      - "index.html"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -15,7 +14,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: true
 
 jobs:
@@ -26,7 +25,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
+
+      - name: Prepare site
+        run: |
+          mkdir -p _site
+          cp index.html _site/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -34,7 +38,7 @@ jobs:
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: "./docs"
+          path: ./_site
 
       - name: Deploy to GitHub Pages
         id: deployment
