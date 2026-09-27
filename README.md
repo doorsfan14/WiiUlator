@@ -53,10 +53,54 @@ For jailbroken devices, use TrollStore if supported.
 
 Install the APK and provide your own Wii U game and system files.
 
+## Game Setup
+
+Get your legally obtained `.wud` game dump and put it inside the `games` directory.
+
+WiiUlator expects users to provide their own game dumps. Do not provide or distribute game files through the project.
+
 ## Building
 
 Builds are provided through GitHub Actions.
 
-## Legal
+## Known Limitations
 
-WiiUlator does not distribute copyrighted Wii U games or proprietary system files.
+WiiUlator is beta software, so crashes and other instability are expected.
+
+Devices with limited memory may be more prone to crashes, especially:
+
+- iPhone 11
+- iPhone 11 Pro
+- iPhone 11 Pro Max
+- iPhone 12
+- iPhone 12 mini
+- iPhone 13
+- iPhone 13 mini
+
+These devices have 4 GB of RAM, which can be a limitation for WiiUlator depending on the game and emulator workload.
+
+## Contributing
+
+Contributions are welcome.
+
+You can help with:
+
+- Optimization
+- Performance improvements
+- Making custom clients
+- Other development work related to WiiUlator
+
+## Legal Disclaimer
+
+Support will not assist with issues involving illegally obtained copies of games or system files that were not legitimately dumped from real Wii U hardware.
+
+Please use your own legally obtained game dumps and legitimately dumped system files when reporting issues or requesting support.
+
+## Credits
+
+- **Nintendo** — Wii U hardware, software, and related intellectual property.
+- **Habib** — WiiUlator development.
+
+## License
+
+GNU General Public License 3.0
