@@ -142,6 +142,11 @@ final class EmulatorSession: ObservableObject {
         state = .running
     }
 
+    func fail(_ message: String) {
+        lastError = message
+        state = .failed(message)
+    }
+
     func pause() {
         guard state == .running else { return }
         state = .paused
