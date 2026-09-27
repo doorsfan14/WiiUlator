@@ -35,7 +35,7 @@ public final class MainActivity extends Activity {
         super.onCreate(b);
         DynamicColors.applyToActivityIfAvailable(this);
         BG = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurface, Color.WHITE);
-        PRIMARY = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary, Color.rgb(60,90,255));
+        PRIMARY = MaterialColors.getColor(this, android.R.attr.colorAccent, Color.rgb(60,90,255));
         TEXT = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface, Color.BLACK);
         MUTED = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant, Color.DKGRAY);
         SURFACE = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurfaceContainer, BG);
