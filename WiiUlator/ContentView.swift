@@ -1487,7 +1487,7 @@ struct WiiUGameMetadata {
 
 enum WiiUGameMetadataService {
     static func lookup(gameCode: String) async -> WiiUGameMetadata? {
-        guard gameCode.count >= 4 else { return nil }
+        guard gameCode.count == 6 else { return nil }
         guard let url = URL(string: "https://www.gametdb.com/WiiU/\(gameCode)") else { return nil }
 
         var request = URLRequest(url: url)
@@ -1501,43 +1501,60 @@ enum WiiUGameMetadataService {
             return nil
         }
 
-        let name = value(for: "title \\(EN\\)", in: html) ?? headingName(in: html)
-        let developer = value(for: "developer", in: html)
-        let publisher = value(for: "publisher", in: html)
-        let version = value(for: "version", in: html)
+        let title = extractTableValue("title (EN)", from: html)
+            ?? extractTableValue("title", from: html)
+            ?? extractTitleFromHeading(html)
+        let publisher = extractTableValue("publisher", from: html)
+        let developer = extractTableValue("developer", from: html)
+        let version = extractTableValue("version", from: html)
 
-        guard let name, !name.isEmpty else { return nil }
+        guard let title, !title.isEmpty else { return nil }
 
         return WiiUGameMetadata(
-            name: name,
+            name: title,
             provider: publisher?.isEmpty == false ? publisher! : (developer?.isEmpty == false ? developer! : "GameTDB"),
             version: version ?? "",
             titleID: gameCode
         )
     }
 
-    private static func value(for label: String, in html: String) -> String? {
-        let escaped = NSRegularExpression.escapedPattern(for: label)
-        let pattern = "(?is)\\b\(escaped\\)\\s*</[^>]+>\\s*([^<]+)"
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return nil }
-        let range = NSRange(html.startIndex..<html.endIndex, in: html)
-        guard let match = regex.firstMatch(in: html, range: range),
-              let valueRange = Range(match.range(at: 1), in: html) else {
-            return nil
+    private static func extractTableValue(_ label: String, from html: String) -> String? {
+        let escapedLabel = NSRegularExpression.escapedPattern(for: label)
+        let patterns = [
+            "(?is)<th[^>]*>\\s*\(escapedLabel)\\s*</th>\\s*<td[^>]*>\\s*(.*?)\\s*</td>",
+            "(?is)<td[^>]*>\\s*\(escapedLabel)\\s*</td>\\s*<td[^>]*>\\s*(.*?)\\s*</td>"
+        ]
+
+        for pattern in patterns {
+            guard let regex = try? NSRegularExpression(pattern: pattern) else { continue }
+            let range = NSRange(html.startIndex..<html.endIndex, in: html)
+            guard let match = regex.firstMatch(in: html, range: range),
+                  let valueRange = Range(match.range(at: 1), in: html) else { continue }
+
+            let raw = String(html[valueRange])
+            let stripped = raw.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+            let decoded = stripped
+                .replacingOccurrences(of: "&amp;", with: "&")
+                .replacingOccurrences(of: "&quot;", with: "\"")
+                .replacingOccurrences(of: "&#39;", with: "'")
+                .replacingOccurrences(of: "&nbsp;", with: " ")
+
+            let value = decoded.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !value.isEmpty { return value }
         }
-        return String(html[valueRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+
+        return nil
     }
 
-    private static func headingName(in html: String) -> String? {
-        guard let regex = try? NSRegularExpression(pattern: "(?is)<h1[^>]*>\\s*[^<]*? - \\s*(.*?)\\s*</h1>") else {
-            return nil
-        }
+    private static func extractTitleFromHeading(_ html: String) -> String? {
+        guard let regex = try? NSRegularExpression(pattern: "(?is)<h1[^>]*>\\s*(.*?)\\s*</h1>") else { return nil }
         let range = NSRange(html.startIndex..<html.endIndex, in: html)
         guard let match = regex.firstMatch(in: html, range: range),
-              let valueRange = Range(match.range(at: 1), in: html) else {
-            return nil
-        }
-        return String(html[valueRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+              let valueRange = Range(match.range(at: 1), in: html) else { return nil }
+
+        let raw = String(html[valueRange])
+        let stripped = raw.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+        return stripped.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
