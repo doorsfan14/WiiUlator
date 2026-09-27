@@ -54,7 +54,7 @@ struct LibraryView: View {
                         Text(searchText.isEmpty ? "No Games" : "No Results")
                             .font(.headline)
 
-                        Text(searchText.isEmpty ? "Import a Wii U game to get started." : "Try a different search.")
+                        Text(searchText.isEmpty ? "Import Wii U homebrew to get started." : "Try a different search.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -826,24 +826,65 @@ final class GameLibraryStore: ObservableObject {
             if accessing { url.stopAccessingSecurityScopedResource() }
         }
 
-        let destination = Self.gamesFolderURL.appendingPathComponent(url.lastPathComponent, isDirectory: true)
+        guard let executableURL = findWiiUExecutable(in: url),
+              (try? WiiUExecutableLoader().inspect(url: executableURL)) != nil else {
+            return
+        }
+
+        let destination = Self.gamesFolderURL.appendingPathComponent(url.lastPathComponent, isDirectory: url.hasDirectoryPath)
         var finalDestination = destination
         if FileManager.default.fileExists(atPath: finalDestination.path) {
-            finalDestination = Self.gamesFolderURL.appendingPathComponent("\(UUID().uuidString)-\(url.lastPathComponent)", isDirectory: true)
+            finalDestination = Self.gamesFolderURL.appendingPathComponent("\(UUID().uuidString)-\(url.lastPathComponent)", isDirectory: url.hasDirectoryPath)
         }
 
         do {
             try FileManager.default.copyItem(at: url, to: finalDestination)
+
+            let importedExecutable = url.hasDirectoryPath
+                ? finalDestination.appendingPathComponent(executableURL.pathComponents.dropFirst(url.pathComponents.count).joined(separator: "/"))
+                : finalDestination
+
+            let metadata = try WiiUExecutableLoader().inspect(url: importedExecutable)
             let displayName = url.deletingPathExtension().lastPathComponent
+
             let game = LibraryGame(
                 name: displayName.isEmpty ? url.lastPathComponent : displayName,
+                provider: "Wii U Homebrew",
+                version: "",
+                titleID: nil,
                 path: finalDestination.path
             )
+
+            _ = metadata
             games.append(game)
             save()
         } catch {
-            // Import failures are intentionally non-fatal; the library remains unchanged.
+            try? FileManager.default.removeItem(at: finalDestination)
         }
+    }
+
+    private func findWiiUExecutable(in url: URL) -> URL? {
+        if !url.hasDirectoryPath {
+            let ext = url.pathExtension.lowercased()
+            return ext == "rpx" || ext == "elf" ? url : nil
+        }
+
+        guard let enumerator = FileManager.default.enumerator(
+            at: url,
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return nil
+        }
+
+        for case let candidate as URL in enumerator {
+            let ext = candidate.pathExtension.lowercased()
+            if ext == "rpx" || ext == "elf" {
+                return candidate
+            }
+        }
+
+        return nil
     }
 
     func remove(at offsets: IndexSet, from visibleGames: [LibraryGame]) {
