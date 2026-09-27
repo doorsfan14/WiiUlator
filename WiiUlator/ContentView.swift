@@ -107,6 +107,7 @@ struct GameIconView: View {
 
 struct DemoGameView: View {
     @State private var showingControls = true
+    @State private var showingStopConfirmation = false
 
     var body: some View {
         ZStack {
@@ -119,7 +120,7 @@ struct DemoGameView: View {
             }
 
             VStack {
-                HStack {
+                HStack(spacing: 8) {
                     Spacer()
 
                     Button {
@@ -133,8 +134,18 @@ struct DemoGameView: View {
                             .frame(width: 34, height: 34)
                             .background(.black.opacity(0.42), in: Circle())
                     }
-                    .padding(12)
+
+                    Button {
+                        showingStopConfirmation = true
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(.white.opacity(0.82))
+                            .frame(width: 34, height: 34)
+                            .background(.black.opacity(0.42), in: Circle())
+                    }
                 }
+                .padding(12)
 
                 Spacer()
             }
@@ -145,6 +156,16 @@ struct DemoGameView: View {
         .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .navigationBarBackButtonHidden(true)
+        .confirmationDialog(
+            "Are you sure you wanna stop the emulation?",
+            isPresented: $showingStopConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Yes", role: .destructive) {
+                endEmulation()
+            }
+            Button("No", role: .cancel) { }
+        }
         .onAppear {
             LandscapeGameSession.begin()
         }
@@ -296,20 +317,19 @@ struct SimpleDiamondButtons: View {
     let size: CGFloat
 
     var body: some View {
-        ZStack {
+        LazyVGrid(
+            columns: [
+                GridItem(.fixed(size), spacing: size * 0.12),
+                GridItem(.fixed(size), spacing: size * 0.12)
+            ],
+            spacing: size * 0.12
+        ) {
             SimpleFaceButton(title: "X", size: size)
-                .offset(y: -size * 1.12)
-
             SimpleFaceButton(title: "Y", size: size)
-                .offset(x: -size * 1.12)
-
             SimpleFaceButton(title: "A", size: size)
-                .offset(x: size * 1.12)
-
             SimpleFaceButton(title: "B", size: size)
-                .offset(y: size * 1.12)
         }
-        .frame(width: size * 3.0, height: size * 3.0)
+        .frame(width: size * 2.12, height: size * 2.12)
     }
 }
 
@@ -535,12 +555,24 @@ struct AudioSettingsView: View {
 struct SystemSettingsView: View {
     @AppStorage("autoSave") private var autoSave = true
     @AppStorage("confirmExit") private var confirmExit = true
+    private var jitEnabled: Bool {
+        JITStatus.isEnabled
+    }
 
     var body: some View {
         Form {
             Section("System") {
                 Toggle("Auto Save", isOn: $autoSave)
                 Toggle("Confirm Before Exit", isOn: $confirmExit)
+            }
+
+            Section("JIT") {
+                HStack {
+                    Text("JIT")
+                    Spacer()
+                    Text(jitEnabled ? "• Enabled" : "• Not Enabled")
+                        .foregroundStyle(jitEnabled ? .green : .red)
+                }
             }
 
             Section("Performance") {
@@ -660,6 +692,16 @@ private struct DeviceInfo {
         sysctlbyname("hw.machine", &machine, &size, nil, 0)
 
         return String(cString: machine)
+    }
+}
+
+private enum JITStatus {
+    static var isEnabled: Bool {
+        #if DEBUG
+        return false
+        #else
+        return false
+        #endif
     }
 }
 
