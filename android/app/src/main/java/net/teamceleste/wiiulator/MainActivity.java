@@ -12,7 +12,7 @@ import java.io.*;
 import java.util.*;
 
 public final class MainActivity extends Activity {
-    private EmulatorCore core;
+    
     private LinearLayout page, content;
     private int selectedTab = 0;
     private final ArrayList<Game> games = new ArrayList<>();
@@ -36,7 +36,6 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
         prefs = getSharedPreferences("wiiulator", MODE_PRIVATE);
-        core = new EmulatorCore();
         setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         buildShell();
         showLibrary();
@@ -365,7 +364,7 @@ public final class MainActivity extends Activity {
         super.onActivityResult(r,c,d);if(r!=PICK||c!=RESULT_OK||d==null)return;
         Uri uri=d.getData();if(uri==null)return;
         try(InputStream in=getContentResolver().openInputStream(uri)){
-            byte[] data=readAll(in);core.loadElf(data);
+            byte[] data=readAll(in);new EmulatorCore().loadElf(data);
             String name=uri.getLastPathSegment();if(name==null)name="Imported Wii U Game";
             games.add(new Game(name,"Local","Ready"));showLibrary();
         }catch(Exception e){Toast.makeText(this,"Load failed: "+e.getMessage(),Toast.LENGTH_LONG).show();}
