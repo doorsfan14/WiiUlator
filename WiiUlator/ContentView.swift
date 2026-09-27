@@ -200,7 +200,7 @@ struct DemoGameView: View {
             EmulatorVideoView(session: session)
 
             if showingControls {
-                SimpleTouchControls()
+                SimpleTouchControls(gamePad: session.core.gamePad)
                     .transition(.opacity)
             }
 
@@ -444,6 +444,8 @@ private enum OrientationController {
 }
 
 struct SimpleTouchControls: View {
+    let gamePad: WiiUGamePad
+
     var body: some View {
         GeometryReader { proxy in
             let compact = proxy.size.width < 700
@@ -453,9 +455,9 @@ struct SimpleTouchControls: View {
             ZStack {
                 VStack {
                     HStack {
-                        SimpleShoulderButton(title: "ZL")
+                        SimpleShoulderButton(title: "ZL", button: .zl, gamePad: gamePad)
                         Spacer()
-                        SimpleShoulderButton(title: "ZR")
+                        SimpleShoulderButton(title: "ZR", button: .zr, gamePad: gamePad)
                     }
                     .padding(.horizontal, compact ? 18 : 28)
                     .padding(.top, compact ? 22 : 34)
@@ -476,7 +478,7 @@ struct SimpleTouchControls: View {
                 VStack {
                     Spacer()
                     HStack {
-                        SimpleDPad(size: buttonSize)
+                        SimpleDPad(size: buttonSize, gamePad: gamePad)
                         Spacer()
                     }
                     .padding(.leading, compact ? 20 : 32)
@@ -526,24 +528,28 @@ struct SimpleStick: View {
 
 struct SimpleDPad: View {
     let size: CGFloat
-    @State private var pressed = false
+    let gamePad: WiiUGamePad
 
     var body: some View {
-        Image(systemName: "plus")
-            .font(.system(size: size * 0.72, weight: .semibold))
-            .foregroundStyle(.white.opacity(0.32))
-            .frame(width: size, height: size)
-            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
-            .overlay {
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(.white.opacity(0.18), lineWidth: 1)
-            }
-            .scaleEffect(pressed ? 0.92 : 1)
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in pressed = true }
-                    .onEnded { _ in pressed = false }
-            )
+        ZStack {
+            dpadButton("chevron.up", .dpadUp)
+                .offset(y: -size * 0.27)
+            dpadButton("chevron.down", .dpadDown)
+                .offset(y: size * 0.27)
+            dpadButton("chevron.left", .dpadLeft)
+                .offset(x: -size * 0.27)
+            dpadButton("chevron.right", .dpadRight)
+                .offset(x: size * 0.27)
+        }
+        .frame(width: size * 1.45, height: size * 1.45)
+    }
+
+    private func dpadButton(_ icon: String, _ button: WiiUGamePadButton) -> some View {
+        GamePadButton(gamePad: gamePad, button: button) {
+            Image(systemName: icon)
+                .font(.system(size: size * 0.22, weight: .bold))
+        }
+        .frame(width: size * 0.52, height: size * 0.52)
     }
 }
 
@@ -558,10 +564,10 @@ struct SimpleDiamondButtons: View {
             ],
             spacing: size * 0.12
         ) {
-            SimpleFaceButton(title: "X", size: size)
-            SimpleFaceButton(title: "Y", size: size)
-            SimpleFaceButton(title: "A", size: size)
-            SimpleFaceButton(title: "B", size: size)
+            SimpleFaceButton(title: "X", button: .x, size: size, gamePad: gamePad)
+            SimpleFaceButton(title: "Y", button: .y, size: size, gamePad: gamePad)
+            SimpleFaceButton(title: "A", button: .a, size: size, gamePad: gamePad)
+            SimpleFaceButton(title: "B", button: .b, size: size, gamePad: gamePad)
         }
         .frame(width: size * 2.12, height: size * 2.12)
     }
@@ -569,15 +575,30 @@ struct SimpleDiamondButtons: View {
 
 struct SimpleFaceButton: View {
     let title: String
+    let button: WiiUGamePadButton
     let size: CGFloat
+    let gamePad: WiiUGamePad
+
+    var body: some View {
+        GamePadButton(gamePad: gamePad, button: button) {
+            Text(title)
+                .font(.system(size: size * 0.34, weight: .bold, design: .rounded))
+        }
+        .frame(width: size * 0.88, height: size * 0.72)
+    }
+}
+
+struct GamePadButton<Content: View>: View {
+    let gamePad: WiiUGamePad
+    let button: WiiUGamePadButton
+    @ViewBuilder let content: () -> Content
     @State private var pressed = false
 
     var body: some View {
-        Text(title)
-            .font(.system(size: size * 0.34, weight: .bold, design: .rounded))
-            .foregroundStyle(.white.opacity(0.70))
-            .frame(width: size * 0.88, height: size * 0.72)
-            .background(.white.opacity(0.10), in: Capsule())
+        content()
+            .foregroundStyle(.white.opacity(pressed ? 0.9 : 0.70))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(.white.opacity(pressed ? 0.18 : 0.10), in: Capsule())
             .overlay {
                 Capsule()
                     .stroke(.white.opacity(0.20), lineWidth: 1)
@@ -585,8 +606,16 @@ struct SimpleFaceButton: View {
             .scaleEffect(pressed ? 0.90 : 1)
             .gesture(
                 DragGesture(minimumDistance: 0)
-                    .onChanged { _ in pressed = true }
-                    .onEnded { _ in pressed = false }
+                    .onChanged { _ in
+                        if !pressed {
+                            pressed = true
+                            gamePad.setButton(button, pressed: true)
+                        }
+                    }
+                    .onEnded { _ in
+                        pressed = false
+                        gamePad.setButton(button, pressed: false)
+                    }
             )
     }
 }
