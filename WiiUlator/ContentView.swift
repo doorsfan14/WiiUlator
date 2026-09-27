@@ -179,15 +179,19 @@ struct GameIconView: View {
 
 struct DemoGameView: View {
     let game: LibraryGame
+    @StateObject private var session = EmulatorSession()
     @AppStorage("debugOverlayEnabled") private var debugOverlayEnabled = false
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\\.dismiss) private var dismiss
     @State private var showingControls = true
     @State private var showingStopConfirmation = false
+    @State private var showingRuntimeMenu = false
 
     var body: some View {
         ZStack {
             Color.black
                 .ignoresSafeArea()
+
+            EmulatorVideoView(session: session)
 
             if showingControls {
                 SimpleTouchControls()
@@ -195,7 +199,7 @@ struct DemoGameView: View {
             }
 
             if debugOverlayEnabled {
-                DebugOverlay()
+                EmulatorDebugOverlay(session: session)
                     .padding(.top, 10)
                     .padding(.leading, 10)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -213,6 +217,16 @@ struct DemoGameView: View {
                     } label: {
                         Image(systemName: showingControls ? "gamecontroller.fill" : "gamecontroller")
                             .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.82))
+                            .frame(width: 34, height: 34)
+                            .background(.black.opacity(0.42), in: Circle())
+                    }
+
+                    Button {
+                        showingRuntimeMenu = true
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 15, weight: .bold))
                             .foregroundStyle(.white.opacity(0.82))
                             .frame(width: 34, height: 34)
                             .background(.black.opacity(0.42), in: Circle())
@@ -240,25 +254,145 @@ struct DemoGameView: View {
         .toolbar(.hidden, for: .tabBar)
         .navigationBarBackButtonHidden(true)
         .confirmationDialog(
-            "Are you sure you wanna stop the emulation?",
+            "Emulation",
+            isPresented: $showingRuntimeMenu,
+            titleVisibility: .visible
+        ) {
+            if session.state == .running {
+                Button("Pause") {
+                    session.pause()
+                }
+            } else if session.state == .paused || session.state == .ready {
+                Button("Resume") {
+                    session.start()
+                }
+            }
+
+            Button("Stop", role: .destructive) {
+                showingStopConfirmation = true
+            }
+
+            Button("Cancel", role: .cancel) { }
+        }
+        .confirmationDialog(
+            "Stop emulation?",
             isPresented: $showingStopConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Yes", role: .destructive) {
-                endEmulation()
+            Button("Stop", role: .destructive) {
+                session.stop()
+                dismiss()
             }
-            Button("No", role: .cancel) { }
+            Button("Cancel", role: .cancel) { }
         }
         .onAppear {
             LandscapeGameSession.begin()
+            bootGame()
         }
         .onDisappear {
+            session.stop()
             LandscapeGameSession.end()
         }
     }
 
-    private func endEmulation() {
-        dismiss()
+    private func bootGame() {
+        let sourceURL = URL(fileURLWithPath: game.path)
+        let executableURL: URL
+
+        if sourceURL.hasDirectoryPath {
+            guard let found = findExecutable(in: sourceURL) else {
+                return
+            }
+            executableURL = found
+        } else {
+            executableURL = sourceURL
+        }
+
+        session.boot(url: executableURL)
+
+        if session.state == .ready {
+            session.start()
+        }
+    }
+
+    private func findExecutable(in directory: URL) -> URL? {
+        guard let enumerator = FileManager.default.enumerator(
+            at: directory,
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return nil
+        }
+
+        for case let candidate as URL in enumerator {
+            let ext = candidate.pathExtension.lowercased()
+            if ext == "rpx" || ext == "elf" {
+                return candidate
+            }
+        }
+
+        return nil
+    }
+}
+
+struct EmulatorVideoView: View {
+    @ObservedObject var session: EmulatorSession
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 60.0)) { _ in
+            ZStack {
+                Color.black
+
+                VStack(spacing: 8) {
+                    Image(systemName: session.state == .failed("") ? "exclamationmark.triangle" : "gamecontroller")
+                        .font(.system(size: 34, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.32))
+
+                    Text(session.state.label)
+                        .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(.white.opacity(0.78))
+
+                    if case .failed(let message) = session.state {
+                        Text(message)
+                            .font(.system(size: 12, design: .monospaced))
+                            .foregroundStyle(.white.opacity(0.55))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                    } else if session.state == .running {
+                        Text("PowerPC execution active")
+                            .font(.system(size: 12, design: .monospaced))
+                            .foregroundStyle(.white.opacity(0.45))
+                    }
+                }
+            }
+            .onAppear {
+                session.runFrame()
+            }
+            .onChange(of: session.state) { _ in
+                session.runFrame()
+            }
+        }
+        .ignoresSafeArea()
+    }
+}
+
+struct EmulatorDebugOverlay: View {
+    @ObservedObject var session: EmulatorSession
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text("WiiUlator DEBUG")
+                .font(.system(size: 11, weight: .bold, design: .monospaced))
+            Text(String(format: "PC          %08X", session.programCounter))
+            Text("State       \\(session.state.label)")
+            Text("Instructions \\(session.instructionCount)")
+            Text("CPU         PowerPC")
+            Text("Renderer    Metal / pending")
+        }
+        .font(.system(size: 10, design: .monospaced))
+        .foregroundStyle(.white.opacity(0.82))
+        .padding(8)
+        .background(.black.opacity(0.58), in: RoundedRectangle(cornerRadius: 8))
     }
 }
 
@@ -903,16 +1037,7 @@ final class GameLibraryStore: ObservableObject {
     private func load() {
         guard let data = UserDefaults.standard.data(forKey: key),
               let decoded = try? JSONDecoder().decode([LibraryGame].self, from: data) else {
-            games = [
-                LibraryGame(
-                    name: "Mario Kart 8",
-                    provider: "Nintendo",
-                    version: "1.0",
-                    titleID: "AMKE01",
-                    path: Self.gamesFolderURL.appendingPathComponent("Demo-Mario-Kart-8").path,
-                    isDemo: true
-                )
-            ]
+            games = []
             save()
             return
         }
