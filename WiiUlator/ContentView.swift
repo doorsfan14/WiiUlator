@@ -788,7 +788,8 @@ private enum WiiUSystemUpdater {
         }
     }
 }
-\nstruct DebugSettingsView: View {
+
+struct DebugSettingsView: View {
     @AppStorage("debugOverlayEnabled") private var debugOverlayEnabled = false
     @AppStorage("debugLoggingEnabled") private var debugLoggingEnabled = false
 
