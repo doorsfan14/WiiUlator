@@ -1,4 +1,6 @@
 import SwiftUI
+import UIKit
+import Darwin
 import UniformTypeIdentifiers
 
 struct ContentView: View {
@@ -36,23 +38,15 @@ struct LibraryView: View {
                     DemoGameView()
                 } label: {
                     HStack(spacing: 12) {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(.blue.gradient)
-                            .frame(width: 56, height: 56)
-                            .overlay {
-                                Image(systemName: "gamecontroller.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(.white)
-                            }
+                        GameIconView()
+                            .frame(width: 64, height: 64)
 
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("Mario Kart 8")
-                                .font(.headline)
-
-                            Text("GamePad Overlay Demo")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 4) {
+                            LabeledContent("Name", value: "Mario Kart 8")
+                            LabeledContent("Provider", value: "Nintendo")
+                            LabeledContent("Version", value: "1.0")
                         }
+                        .font(.subheadline)
                     }
                     .padding(.vertical, 4)
                 }
@@ -84,15 +78,43 @@ struct LibraryView: View {
     }
 }
 
+struct GameIconView: View {
+    private let iconURL = URL(string: "https://art.gametdb.com/wiiu/icon/US/AMKE01.png")!
+
+    var body: some View {
+        AsyncImage(url: iconURL) { phase in
+            switch phase {
+            case .success(let image):
+                image
+                    .resizable()
+                    .scaledToFill()
+            default:
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(.secondary.opacity(0.18))
+                    .overlay {
+                        Image(systemName: "gamecontroller.fill")
+                            .foregroundStyle(.secondary)
+                    }
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay {
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(.secondary.opacity(0.18), lineWidth: 1)
+        }
+    }
+}
+
 struct DemoGameView: View {
     @State private var showingControls = true
 
     var body: some View {
         ZStack {
-            EmulatorScene()
+            Color.black
+                .ignoresSafeArea()
 
             if showingControls {
-                TouchControls()
+                SimpleTouchControls()
                     .transition(.opacity)
             }
 
@@ -107,9 +129,9 @@ struct DemoGameView: View {
                     } label: {
                         Image(systemName: showingControls ? "gamecontroller.fill" : "gamecontroller")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(.white.opacity(0.82))
                             .frame(width: 34, height: 34)
-                            .background(.black.opacity(0.38), in: Circle())
+                            .background(.black.opacity(0.42), in: Circle())
                     }
                     .padding(12)
                 }
@@ -125,105 +147,44 @@ struct DemoGameView: View {
     }
 }
 
-struct EmulatorScene: View {
-    var body: some View {
-        GeometryReader { proxy in
-            ZStack {
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.04, green: 0.16, blue: 0.25),
-                        Color(red: 0.12, green: 0.31, blue: 0.28),
-                        Color(red: 0.03, green: 0.08, blue: 0.12)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-
-                Rectangle()
-                    .fill(.black.opacity(0.18))
-                    .frame(height: proxy.size.height * 0.34)
-                    .position(x: proxy.size.width / 2, y: proxy.size.height * 0.25)
-
-                VStack {
-                    Spacer()
-
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("MARIO KART 8")
-                                .font(.system(size: 17, weight: .heavy, design: .rounded))
-                            Text("1st   •   3 / 3 LAPS")
-                                .font(.system(size: 11, weight: .semibold, design: .rounded))
-                                .opacity(0.82)
-                        }
-                        .foregroundStyle(.white)
-
-                        Spacer()
-
-                        Text("03:21.842")
-                            .font(.system(size: 18, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 28)
-                }
-
-                VStack(spacing: 8) {
-                    Text("Wii U")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.5))
-
-                    Text("GAME RENDERER DEMO")
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.65))
-                }
-            }
-        }
-    }
-}
-
-struct TouchControls: View {
+struct SimpleTouchControls: View {
     var body: some View {
         GeometryReader { proxy in
             let compact = proxy.size.width < 700
-            let button = compact ? CGFloat(46) : CGFloat(58)
-            let stick = compact ? CGFloat(74) : CGFloat(92)
+            let buttonSize = compact ? CGFloat(42) : CGFloat(50)
+            let stickSize = compact ? CGFloat(68) : CGFloat(82)
 
             ZStack {
                 VStack {
-                    Spacer()
-
-                    HStack(alignment: .bottom) {
-                        VStack(spacing: compact ? 16 : 22) {
-                            TouchStick(size: stick)
-                            TouchDPad(size: button)
-                        }
-
+                    HStack {
+                        SimpleShoulderButton(title: "ZL")
                         Spacer()
-
-                        TouchGamePadScreen()
-                            .frame(
-                                width: compact ? 112 : 150,
-                                height: compact ? 70 : 92
-                            )
-
-                        Spacer()
-
-                        TouchFaceButtons(size: button)
+                        SimpleShoulderButton(title: "ZR")
                     }
-                    .padding(.horizontal, compact ? 18 : 32)
-                    .padding(.bottom, compact ? 18 : 30)
+                    .padding(.horizontal, compact ? 18 : 28)
+                    .padding(.top, compact ? 24 : 38)
+
+                    Spacer()
                 }
 
-                VStack {
-                    HStack {
-                        TouchShoulderButton(title: "ZL")
-                        Spacer()
-                        TouchShoulderButton(title: "ZR")
-                    }
-                    .padding(.horizontal, compact ? 22 : 38)
-                    .padding(.top, compact ? 30 : 48)
+                HStack(alignment: .bottom) {
+                    SimpleStick(size: stickSize)
 
                     Spacer()
+
+                    SimpleFaceButtons(size: buttonSize)
+                }
+                .padding(.horizontal, compact ? 20 : 32)
+                .padding(.bottom, compact ? 20 : 30)
+
+                VStack {
+                    Spacer()
+                    HStack {
+                        SimpleDPad(size: buttonSize)
+                        Spacer()
+                    }
+                    .padding(.leading, compact ? 20 : 32)
+                    .padding(.bottom, compact ? 22 : 34)
                 }
             }
         }
@@ -231,103 +192,24 @@ struct TouchControls: View {
     }
 }
 
-struct TouchStick: View {
+struct SimpleStick: View {
     let size: CGFloat
-    @State private var pressed = false
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(.black.opacity(0.30))
-                .frame(width: size, height: size)
-                .overlay {
-                    Circle()
-                        .stroke(.white.opacity(0.22), lineWidth: 1)
-                }
-
-            Circle()
-                .fill(.white.opacity(0.16))
-                .frame(width: size * 0.56, height: size * 0.56)
-                .overlay {
-                    Circle()
-                        .stroke(.white.opacity(0.32), lineWidth: 1)
-                }
-                .scaleEffect(pressed ? 0.9 : 1)
-
-            Circle()
-                .fill(.white.opacity(0.08))
-                .frame(width: size * 0.32, height: size * 0.32)
-        }
-        .contentShape(Circle())
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in pressed = true }
-                .onEnded { _ in pressed = false }
-        )
-    }
-}
-
-struct TouchDPad: View {
-    let size: CGFloat
-    @State private var pressed = false
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 7)
-                .fill(.black.opacity(0.30))
-                .frame(width: size * 0.38, height: size)
-
-            RoundedRectangle(cornerRadius: 7)
-                .fill(.black.opacity(0.30))
-                .frame(width: size, height: size * 0.38)
-
-            Image(systemName: "plus")
-                .font(.system(size: size * 0.28, weight: .bold))
-                .foregroundStyle(.white.opacity(0.42))
-        }
-        .scaleEffect(pressed ? 0.94 : 1)
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in pressed = true }
-                .onEnded { _ in pressed = false }
-        )
-    }
-}
-
-struct TouchFaceButtons: View {
-    let size: CGFloat
-
-    var body: some View {
-        ZStack {
-            TouchFaceButton(title: "X", offset: CGSize(width: 0, height: -size * 0.55))
-            TouchFaceButton(title: "Y", offset: CGSize(width: -size * 0.55, height: 0))
-            TouchFaceButton(title: "A", offset: CGSize(width: size * 0.55, height: 0))
-            TouchFaceButton(title: "B", offset: CGSize(width: 0, height: size * 0.55))
-        }
-        .frame(width: size * 2.2, height: size * 2.2)
-    }
-}
-
-struct TouchFaceButton: View {
-    let title: String
-    let offset: CGSize
     @State private var pressed = false
 
     var body: some View {
         Circle()
-            .fill(.black.opacity(0.34))
-            .frame(width: 38, height: 38)
-            .overlay {
-                Text(title)
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.72))
-            }
+            .fill(.white.opacity(0.10))
+            .frame(width: size, height: size)
             .overlay {
                 Circle()
                     .stroke(.white.opacity(0.22), lineWidth: 1)
             }
-            .offset(offset)
-            .scaleEffect(pressed ? 0.9 : 1)
+            .overlay {
+                Circle()
+                    .fill(.white.opacity(0.18))
+                    .frame(width: size * 0.52, height: size * 0.52)
+            }
+            .scaleEffect(pressed ? 0.92 : 1)
             .contentShape(Circle())
             .gesture(
                 DragGesture(minimumDistance: 0)
@@ -337,26 +219,21 @@ struct TouchFaceButton: View {
     }
 }
 
-struct TouchGamePadScreen: View {
+struct SimpleDPad: View {
+    let size: CGFloat
     @State private var pressed = false
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 10)
-            .fill(.black.opacity(0.42))
+        Image(systemName: "plus")
+            .font(.system(size: size * 0.72, weight: .semibold))
+            .foregroundStyle(.white.opacity(0.32))
+            .frame(width: size, height: size)
+            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
             .overlay {
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(.white.opacity(0.28), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(.white.opacity(0.18), lineWidth: 1)
             }
-            .overlay {
-                VStack(spacing: 5) {
-                    Image(systemName: "rectangle.and.hand.point.up.left")
-                        .font(.system(size: 17))
-                    Text("GAMEPAD")
-                        .font(.system(size: 8, weight: .bold, design: .rounded))
-                }
-                .foregroundStyle(.white.opacity(0.58))
-            }
-            .scaleEffect(pressed ? 0.96 : 1)
+            .scaleEffect(pressed ? 0.92 : 1)
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { _ in pressed = true }
@@ -365,19 +242,56 @@ struct TouchGamePadScreen: View {
     }
 }
 
-struct TouchShoulderButton: View {
+struct SimpleFaceButtons: View {
+    let size: CGFloat
+
+    var body: some View {
+        HStack(spacing: 8) {
+            SimpleFaceButton(title: "Y", size: size)
+            SimpleFaceButton(title: "X", size: size)
+            SimpleFaceButton(title: "B", size: size)
+            SimpleFaceButton(title: "A", size: size)
+        }
+    }
+}
+
+struct SimpleFaceButton: View {
+    let title: String
+    let size: CGFloat
+    @State private var pressed = false
+
+    var body: some View {
+        Text(title)
+            .font(.system(size: size * 0.30, weight: .bold, design: .rounded))
+            .foregroundStyle(.white.opacity(0.70))
+            .frame(width: size, height: size)
+            .background(.white.opacity(0.10), in: Circle())
+            .overlay {
+                Circle()
+                    .stroke(.white.opacity(0.20), lineWidth: 1)
+            }
+            .scaleEffect(pressed ? 0.90 : 1)
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in pressed = true }
+                    .onEnded { _ in pressed = false }
+            )
+    }
+}
+
+struct SimpleShoulderButton: View {
     let title: String
     @State private var pressed = false
 
     var body: some View {
         Text(title)
             .font(.system(size: 11, weight: .bold, design: .rounded))
-            .foregroundStyle(.white.opacity(0.65))
-            .frame(width: 52, height: 30)
-            .background(.black.opacity(0.28), in: Capsule())
+            .foregroundStyle(.white.opacity(0.62))
+            .frame(width: 48, height: 28)
+            .background(.white.opacity(0.08), in: Capsule())
             .overlay {
                 Capsule()
-                    .stroke(.white.opacity(0.2), lineWidth: 1)
+                    .stroke(.white.opacity(0.18), lineWidth: 1)
             }
             .scaleEffect(pressed ? 0.92 : 1)
             .gesture(
@@ -583,12 +497,23 @@ struct SystemSettingsView: View {
 }
 
 struct AboutView: View {
+    private var deviceInfo: DeviceInfo {
+        DeviceInfo.current
+    }
+
     var body: some View {
         List {
             Section("WiiUlator") {
                 LabeledContent("Version", value: "1.0")
                 LabeledContent("Platform", value: "iOS & iPadOS")
                 LabeledContent("Minimum iOS", value: "16.0")
+            }
+
+            Section("This Device") {
+                LabeledContent("Device", value: deviceInfo.name)
+                LabeledContent("Chip", value: deviceInfo.chip)
+                LabeledContent("OS", value: deviceInfo.osVersion)
+                LabeledContent("Architecture", value: deviceInfo.architecture)
             }
 
             Section {
@@ -612,6 +537,12 @@ struct AboutView: View {
                 .padding(.vertical, 12)
             }
 
+            Section("Game Artwork") {
+                Text("Wii U game artwork can be sourced from GameTDB. Wii U title pages provide the game metadata and artwork database.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Open Source") {
                 Text("WiiUlator is open source and developed by Team Celeste.")
                     .foregroundStyle(.secondary)
@@ -619,6 +550,58 @@ struct AboutView: View {
         }
         .navigationTitle("About")
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct DeviceInfo {
+    let name: String
+    let chip: String
+    let osVersion: String
+    let architecture: String
+
+    static var current: DeviceInfo {
+        let identifier = hardwareIdentifier()
+
+        let name: String
+        let chip: String
+
+        switch identifier {
+        case "iPhone14,5":
+            name = "iPhone 13"
+            chip = "Apple A15 Bionic"
+        case "iPhone14,2":
+            name = "iPhone 13 Pro"
+            chip = "Apple A15 Bionic"
+        case "iPhone14,3":
+            name = "iPhone 13 Pro Max"
+            chip = "Apple A15 Bionic"
+        case "iPhone14,4":
+            name = "iPhone 13 mini"
+            chip = "Apple A15 Bionic"
+        default:
+            name = UIDevice.current.model
+            chip = "Apple Silicon"
+        }
+
+        let version = UIDevice.current.systemVersion
+        let architecture = MemoryLayout<Int>.size == 8 ? "ARM64" : "ARM"
+
+        return DeviceInfo(
+            name: name,
+            chip: chip,
+            osVersion: "\(UIDevice.current.systemName) \(version)",
+            architecture: architecture
+        )
+    }
+
+    private static func hardwareIdentifier() -> String {
+        var size: size_t = 0
+        sysctlbyname("hw.machine", nil, &size, nil, 0)
+
+        var machine = [CChar](repeating: 0, count: Int(size))
+        sysctlbyname("hw.machine", &machine, &size, nil, 0)
+
+        return String(cString: machine)
     }
 }
 
