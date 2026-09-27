@@ -17,7 +17,7 @@ public final class MainActivity extends Activity {
     private int selectedTab = 0;
     private final ArrayList<Game> games = new ArrayList<>();
     private final HashSet<String> favorites = new HashSet<>();
-    private final android.content.SharedPreferences prefs;
+    private android.content.SharedPreferences prefs;
     private static final int PICK = 7;
 
     private static final int BG = Color.rgb(7, 12, 20);
@@ -196,10 +196,10 @@ public final class MainActivity extends Activity {
         info.addView(n,new LinearLayout.LayoutParams(-1,dp(28)));info.addView(p,new LinearLayout.LayoutParams(-1,dp(22)));info.addView(v,new LinearLayout.LayoutParams(-1,dp(20)));
         row.addView(info,new LinearLayout.LayoutParams(0,-2,1));
         Button star=new Button(this);star.setText(favorites.contains(g.name)?"★":"☆");star.setTextSize(24);star.setTextColor(favorites.contains(g.name)?Color.rgb(255,205,65):MUTED);star.setAllCaps(false);star.setBackgroundColor(Color.TRANSPARENT);
-        star.setOnClickListener(v->{if(favorites.contains(g.name))favorites.remove(g.name);else favorites.add(g.name);showLibrary();});
+        star.setOnClickListener(view->{if(favorites.contains(g.name))favorites.remove(g.name);else favorites.add(g.name);showLibrary();});
         row.addView(star,new LinearLayout.LayoutParams(dp(50),dp(58)));
         c.addView(row);
-        Button play=primaryButton("OPEN GAME");play.setOnClickListener(v->Toast.makeText(this,"Game launch will use the emulator core.",Toast.LENGTH_SHORT).show());
+        Button play=primaryButton("OPEN GAME");play.setOnClickListener(view->Toast.makeText(this,"Game launch will use the emulator core.",Toast.LENGTH_SHORT).show());
         LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-1,dp(42));pp.topMargin=dp(12);c.addView(play,pp);
         LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);cp.bottomMargin=dp(12);content.addView(c,cp);
     }
