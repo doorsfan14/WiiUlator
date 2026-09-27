@@ -11,6 +11,7 @@ private enum WiiUlatorBuildInfo {
 
 struct ContentView: View {
     @State private var selectedTab: Tab = .library
+    @AppStorage("appLanguage") private var appLanguage = ""
 
     enum Tab {
         case library
@@ -31,6 +32,7 @@ struct ContentView: View {
                 }
                 .tag(Tab.settings)
         }
+        .environment(\.locale, appLanguage.isEmpty ? Locale.current : Locale(identifier: appLanguage))
     }
 }
 
@@ -660,9 +662,22 @@ struct SimpleShoulderButton: View {
 }
 
 struct SettingsView: View {
+    @AppStorage("appLanguage") private var appLanguage = ""
+
     var body: some View {
         NavigationStack {
             List {
+                Section("Language") {
+                    Picker("Language", selection: $appLanguage) {
+                        Text("System Language").tag("")
+                        Text("Spanish").tag("es")
+                        Text("Portuguese").tag("pt")
+                        Text("Japanese").tag("ja")
+                        Text("Chinese").tag("zh-Hans")
+                        Text("English (UK) ☕").tag("en-GB")
+                    }
+                }
+
                 Section("Emulation") {
                     NavigationLink {
                         GraphicsSettingsView()
