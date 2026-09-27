@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 import Darwin
 import UniformTypeIdentifiers
+import Darwin
 
 struct ContentView: View {
     @State private var selectedTab: Tab = .library
@@ -144,6 +145,64 @@ struct DemoGameView: View {
         .persistentSystemOverlays(.hidden)
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            LandscapeGameSession.begin()
+        }
+        .onDisappear {
+            LandscapeGameSession.end()
+        }
+    }
+}
+
+private enum LandscapeGameSession {
+    static func begin() {
+        OrientationController.lockLandscape()
+        hideBottomBar()
+    }
+
+    static func end() {
+        OrientationController.unlock()
+        showBottomBar()
+    }
+
+    private static func hideBottomBar() {
+        let selector = NSSelectorFromString("setTabBarHidden:animated:")
+        guard let tabBar = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.rootViewController?.tabBarController,
+              tabBar.responds(to: selector) else { return }
+
+        _ = tabBar.perform(selector, with: true, with: false)
+    }
+
+    private static func showBottomBar() {
+        let selector = NSSelectorFromString("setTabBarHidden:animated:")
+        guard let tabBar = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.rootViewController?.tabBarController,
+              tabBar.responds(to: selector) else { return }
+
+        _ = tabBar.perform(selector, with: false, with: false)
+    }
+}
+
+private enum OrientationController {
+    static func lockLandscape() {
+        if #available(iOS 16.0, *) {
+            let mask: UIInterfaceOrientationMask = .landscape
+            UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .forEach { scene in
+                    scene.requestGeometryUpdate(.iOS(interfaceOrientations: mask))
+                }
+        }
+    }
+
+    static func unlock() {
+        if #available(iOS 16.0, *) {
+            let mask: UIInterfaceOrientationMask = .all
+            UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .forEach { scene in
+                    scene.requestGeometryUpdate(.iOS(interfaceOrientations: mask))
+                }
+        }
     }
 }
 
@@ -151,8 +210,8 @@ struct SimpleTouchControls: View {
     var body: some View {
         GeometryReader { proxy in
             let compact = proxy.size.width < 700
-            let buttonSize = compact ? CGFloat(42) : CGFloat(50)
-            let stickSize = compact ? CGFloat(68) : CGFloat(82)
+            let buttonSize = compact ? CGFloat(40) : CGFloat(48)
+            let stickSize = compact ? CGFloat(70) : CGFloat(82)
 
             ZStack {
                 VStack {
@@ -162,7 +221,7 @@ struct SimpleTouchControls: View {
                         SimpleShoulderButton(title: "ZR")
                     }
                     .padding(.horizontal, compact ? 18 : 28)
-                    .padding(.top, compact ? 24 : 38)
+                    .padding(.top, compact ? 22 : 34)
 
                     Spacer()
                 }
@@ -172,7 +231,7 @@ struct SimpleTouchControls: View {
 
                     Spacer()
 
-                    SimpleFaceButtons(size: buttonSize)
+                    SimpleDiamondButtons(size: buttonSize)
                 }
                 .padding(.horizontal, compact ? 20 : 32)
                 .padding(.bottom, compact ? 20 : 30)
@@ -194,7 +253,7 @@ struct SimpleTouchControls: View {
 
 struct SimpleStick: View {
     let size: CGFloat
-    @State private var pressed = false
+    @State private var dragOffset: CGSize = .zero
 
     var body: some View {
         Circle()
@@ -208,13 +267,22 @@ struct SimpleStick: View {
                 Circle()
                     .fill(.white.opacity(0.18))
                     .frame(width: size * 0.52, height: size * 0.52)
+                    .offset(dragOffset)
             }
-            .scaleEffect(pressed ? 0.92 : 1)
             .contentShape(Circle())
             .gesture(
                 DragGesture(minimumDistance: 0)
-                    .onChanged { _ in pressed = true }
-                    .onEnded { _ in pressed = false }
+                    .onChanged { value in
+                        let limit = size * 0.22
+                        let x = max(-limit, min(limit, value.translation.width))
+                        let y = max(-limit, min(limit, value.translation.height))
+                        dragOffset = CGSize(width: x, height: y)
+                    }
+                    .onEnded { _ in
+                        withAnimation(.easeOut(duration: 0.12)) {
+                            dragOffset = .zero
+                        }
+                    }
             )
     }
 }
@@ -242,16 +310,24 @@ struct SimpleDPad: View {
     }
 }
 
-struct SimpleFaceButtons: View {
+struct SimpleDiamondButtons: View {
     let size: CGFloat
 
     var body: some View {
-        HStack(spacing: 8) {
-            SimpleFaceButton(title: "Y", size: size)
+        ZStack {
             SimpleFaceButton(title: "X", size: size)
-            SimpleFaceButton(title: "B", size: size)
+                .offset(y: -size * 0.58)
+
+            SimpleFaceButton(title: "Y", size: size)
+                .offset(x: -size * 0.58)
+
             SimpleFaceButton(title: "A", size: size)
+                .offset(x: size * 0.58)
+
+            SimpleFaceButton(title: "B", size: size)
+                .offset(y: size * 0.58)
         }
+        .frame(width: size * 2.35, height: size * 2.35)
     }
 }
 
