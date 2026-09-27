@@ -34,11 +34,11 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
         DynamicColors.applyToActivityIfAvailable(this);
-        BG = MaterialColors.getColor(this, android.R.attr.colorBackground, Color.rgb(248,248,248));
-        PRIMARY = MaterialColors.getColor(this, android.R.attr.colorAccent, Color.rgb(60,90,255));
-        TEXT = MaterialColors.getColor(this, android.R.attr.textColorPrimary, Color.BLACK);
-        MUTED = MaterialColors.getColor(this, android.R.attr.textColorSecondary, Color.DKGRAY);
-        SURFACE = blend(BG, Color.WHITE, 0.55f);
+        BG = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurface, Color.WHITE);
+        PRIMARY = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary, Color.rgb(60,90,255));
+        TEXT = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface, Color.BLACK);
+        MUTED = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant, Color.DKGRAY);
+        SURFACE = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurfaceContainer, BG);
         prefs = getSharedPreferences("wiiulator", MODE_PRIVATE);
         setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         buildShell();
@@ -67,7 +67,7 @@ public final class MainActivity extends Activity {
         c.setCardBackgroundColor(SURFACE);
         c.setRadius(dp(20));
         c.setStrokeWidth(dp(1));
-        c.setStrokeColor(blend(BG,Color.GRAY,.15f));
+        c.setStrokeColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorOutlineVariant, SURFACE));
         c.setUseCompatPadding(false);
         return c;
     }
@@ -150,46 +150,49 @@ public final class MainActivity extends Activity {
 
         LinearLayout titleRow=new LinearLayout(this);
         titleRow.setGravity(Gravity.CENTER_VERTICAL);
+
         TextView title=text("Library",30,TEXT);
         title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
         titleRow.addView(title,new LinearLayout.LayoutParams(0,dp(48),1));
-        TextView count=text(games.size()+" games",13,MUTED);
-        count.setGravity(Gravity.CENTER);
-        titleRow.addView(count,new LinearLayout.LayoutParams(dp(82),dp(36)));
+
+        ImageButton importButton=new ImageButton(this);
+        importButton.setImageResource(net.teamceleste.wiiulator.R.drawable.ic_add);
+        importButton.setColorFilter(PRIMARY);
+        importButton.setBackgroundColor(Color.TRANSPARENT);
+        importButton.setContentDescription("Import Game");
+        importButton.setOnClickListener(v->openPicker());
+        titleRow.addView(importButton,new LinearLayout.LayoutParams(dp(48),dp(48)));
         content.addView(titleRow);
 
-        TextView hint=text("Import Wii U software and launch it from here.",14,MUTED);
-        content.addView(hint,new LinearLayout.LayoutParams(-1,dp(30)));
-
         if(games.isEmpty()) {
-            addGap(18);
-            MaterialCardView empty=card();
-            LinearLayout box=new LinearLayout(this);
-            box.setOrientation(LinearLayout.VERTICAL);
-            box.setGravity(Gravity.CENTER_HORIZONTAL);
-            box.setPadding(dp(24),dp(30),dp(24),dp(26));
+            LinearLayout empty=new LinearLayout(this);
+            empty.setOrientation(LinearLayout.VERTICAL);
+            empty.setGravity(Gravity.CENTER);
+            empty.setPadding(dp(24),0,dp(24),0);
+
             ImageView icon=new ImageView(this);
-            icon.setImageResource(net.teamceleste.wiiulator.R.drawable.ic_library);
-            icon.setBackgroundTintList(ColorStateList.valueOf(PRIMARY));
-            box.addView(icon,new LinearLayout.LayoutParams(dp(48),dp(48)));
-            TextView t=text("Your library is empty",21,TEXT);
-            t.setGravity(Gravity.CENTER);
-            t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
-            box.addView(t,new LinearLayout.LayoutParams(-1,dp(40)));
-            TextView s=text("Choose a Wii U game or executable to add it to WiiUlator.",14,MUTED);
-            s.setGravity(Gravity.CENTER);
-            box.addView(s,new LinearLayout.LayoutParams(-1,dp(55)));
-            MaterialButton imp=button("Import game",net.teamceleste.wiiulator.R.drawable.ic_add);
-            imp.setOnClickListener(v->openPicker());
-            LinearLayout.LayoutParams ip=new LinearLayout.LayoutParams(-1,dp(52));
-            ip.topMargin=dp(8);
-            box.addView(imp,ip);
-            empty.addView(box);
-            content.addView(empty,new LinearLayout.LayoutParams(-1,-2));
+            icon.setImageResource(net.teamceleste.wiiulator.R.drawable.ic_gamepad);
+            icon.setColorFilter(MUTED);
+            empty.addView(icon,new LinearLayout.LayoutParams(dp(52),dp(52)));
+
+            TextView titleText=text("No Games",20,TEXT);
+            titleText.setGravity(Gravity.CENTER);
+            titleText.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+            LinearLayout.LayoutParams tp=new LinearLayout.LayoutParams(-1,dp(38));
+            tp.topMargin=dp(8);
+            empty.addView(titleText,tp);
+
+            TextView subtitle=text("Import Wii U homebrew to get started.",14,MUTED);
+            subtitle.setGravity(Gravity.CENTER);
+            empty.addView(subtitle,new LinearLayout.LayoutParams(-1,dp(30)));
+
+            content.addView(empty,new LinearLayout.LayoutParams(-1,0,1));
             return;
         }
 
-        addGap(12);
+        TextView count=text(games.size()+" games",13,MUTED);
+        content.addView(count,new LinearLayout.LayoutParams(-1,dp(30)));
+        addGap(8);
         for(Game g:games) addGameCard(g);
     }
 
