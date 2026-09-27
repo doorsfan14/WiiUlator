@@ -1478,6 +1478,69 @@ struct GamesFolderView: View {
     }
 }
 
+struct WiiUGameMetadata {
+    let name: String
+    let provider: String
+    let version: String
+    let titleID: String?
+}
+
+enum WiiUGameMetadataService {
+    static func lookup(gameCode: String) async -> WiiUGameMetadata? {
+        guard gameCode.count >= 4 else { return nil }
+        guard let url = URL(string: "https://www.gametdb.com/WiiU/\(gameCode)") else { return nil }
+
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 10
+        request.setValue("WiiUlator/1.0", forHTTPHeaderField: "User-Agent")
+
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              let http = response as? HTTPURLResponse,
+              200..<300 ~= http.statusCode,
+              let html = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+
+        let name = value(for: "title \\(EN\\)", in: html) ?? headingName(in: html)
+        let developer = value(for: "developer", in: html)
+        let publisher = value(for: "publisher", in: html)
+        let version = value(for: "version", in: html)
+
+        guard let name, !name.isEmpty else { return nil }
+
+        return WiiUGameMetadata(
+            name: name,
+            provider: publisher?.isEmpty == false ? publisher! : (developer?.isEmpty == false ? developer! : "GameTDB"),
+            version: version ?? "",
+            titleID: gameCode
+        )
+    }
+
+    private static func value(for label: String, in html: String) -> String? {
+        let escaped = NSRegularExpression.escapedPattern(for: label)
+        let pattern = "(?is)\\b\(escaped\\)\\s*</[^>]+>\\s*([^<]+)"
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return nil }
+        let range = NSRange(html.startIndex..<html.endIndex, in: html)
+        guard let match = regex.firstMatch(in: html, range: range),
+              let valueRange = Range(match.range(at: 1), in: html) else {
+            return nil
+        }
+        return String(html[valueRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func headingName(in html: String) -> String? {
+        guard let regex = try? NSRegularExpression(pattern: "(?is)<h1[^>]*>\\s*[^<]*? - \\s*(.*?)\\s*</h1>") else {
+            return nil
+        }
+        let range = NSRange(html.startIndex..<html.endIndex, in: html)
+        guard let match = regex.firstMatch(in: html, range: range),
+              let valueRange = Range(match.range(at: 1), in: html) else {
+            return nil
+        }
+        return String(html[valueRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
 struct LibraryGame: Identifiable, Codable, Hashable {
     let id: UUID
     var name: String
@@ -1588,19 +1651,71 @@ final class GameLibraryStore: ObservableObject {
             let metadata = try WiiUExecutableLoader().inspect(url: importedExecutable)
             let displayName = url.deletingPathExtension().lastPathComponent
 
+            let gameID = extractGameCode(from: importedExecutable) ?? extractGameCode(from: finalDestination)
             let game = LibraryGame(
                 name: displayName.isEmpty ? url.lastPathComponent : displayName,
                 provider: "Wii U Homebrew",
                 version: "",
-                titleID: nil,
+                titleID: gameID,
                 path: finalDestination.path
             )
 
             _ = metadata
             games.append(game)
             save()
+
+            if let gameID {
+                enrichMetadata(for: game.id, gameCode: gameID)
+            }
         } catch {
             try? FileManager.default.removeItem(at: finalDestination)
+        }
+    }
+
+    private func extractGameCode(from url: URL) -> String? {
+        let candidates: [URL] = [
+            url.deletingLastPathComponent().appendingPathComponent("meta.xml"),
+            url.deletingLastPathComponent().appendingPathComponent("meta").appendingPathComponent("meta.xml")
+        ]
+
+        for candidate in candidates where FileManager.default.fileExists(atPath: candidate.path) {
+            guard let data = try? Data(contentsOf: candidate),
+                  let xml = String(data: data, encoding: .utf8) else { continue }
+
+            let patterns = [
+                "<product_code>\\s*WUP-[A-Z]-([A-Z0-9]{4})\\s*</product_code>",
+                "<game_id>\\s*([A-Z0-9]{6})\\s*</game_id>",
+                "<title_id>\\s*([A-Z0-9]{6})\\s*</title_id>"
+            ]
+
+            for pattern in patterns {
+                guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { continue }
+                let range = NSRange(xml.startIndex..<xml.endIndex, in: xml)
+                if let match = regex.firstMatch(in: xml, range: range),
+                   let valueRange = Range(match.range(at: 1), in: xml) {
+                    let code = String(xml[valueRange]).uppercased()
+                    if code.count == 6 {
+                        return code
+                    }
+                }
+            }
+        }
+
+        return nil
+    }
+
+    private func enrichMetadata(for gameID: UUID, gameCode: String) {
+        Task { @MainActor in
+            guard let metadata = await WiiUGameMetadataService.lookup(gameCode: gameCode),
+                  let index = games.firstIndex(where: { $0.id == gameID }) else {
+                return
+            }
+
+            games[index].name = metadata.name
+            games[index].provider = metadata.provider
+            games[index].version = metadata.version
+            games[index].titleID = metadata.titleID
+            save()
         }
     }
 
