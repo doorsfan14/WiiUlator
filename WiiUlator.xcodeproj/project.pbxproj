@@ -25,7 +25,7 @@
         A1000000000000000000000A = { isa = PBXBuildFile; fileRef = A10000000000000000000022; };
         A1000000000000000000000B = { isa = PBXBuildFile; fileRef = A10000000000000000000023; };
         A1000000000000000000000C = { isa = PBXBuildFile; fileRef = A10000000000000000000024; };
-        A1000000000000000000000D = { isa = PBXBuildFile; fileRef = A10000000000000000000071; };
+        A1000000000000000000000D = { isa = PBXBuildFile; fileRef = A1000000000000010E; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,11 +47,11 @@
         A10000000000000000000017 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine/EmulatorCoreTests.swift; sourceTree = "<group>"; };
         A10000000000000000000018 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine/WiiUExecutableLoader.swift; sourceTree = "<group>"; };
         A10000000000000000000019 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine/WiiUGamePad.swift; sourceTree = "<group>"; };
-        A10000000000000000000020 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = en-GB.lproj/Localizable.strings; sourceTree = "<group>"; };
-        A10000000000000000000021 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
-        A10000000000000000000022 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = pt.lproj/Localizable.strings; sourceTree = "<group>"; };
-        A10000000000000000000023 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
-        A10000000000000000000024 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = zh-Hans.lproj/Localizable.strings; sourceTree = "<group>"; };
+        A10000000000000101 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = en-GB.lproj/Localizable.strings; sourceTree = "<group>"; };
+        A10000000000000102 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+        A10000000000000103 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = pt.lproj/Localizable.strings; sourceTree = "<group>"; };
+        A10000000000000104 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+        A10000000000000105 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = zh-Hans.lproj/Localizable.strings; sourceTree = "<group>"; };
         A10000000000000000000013 = {
             isa = PBXFileReference;
             explicitFileType = wrapper.application;
@@ -82,11 +82,11 @@
                 A10000000000000000000016,
                 A10000000000000000000018,
                 A10000000000000000000019,
-                A10000000000000000000020,
-                A10000000000000000000021,
-                A10000000000000000000022,
-                A10000000000000000000023,
-                A10000000000000000000024,
+                A10000000000000101,
+                A10000000000000102,
+                A10000000000000103,
+                A10000000000000104,
+                A10000000000000105,
             );
             path = WiiUlator;
             sourceTree = "<group>";
@@ -268,14 +268,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-        A10000000000000000000071 = {
+        A1000000000000010E = {
             isa = PBXVariantGroup;
             children = (
-                A10000000000000000000020,
-                A10000000000000000000021,
-                A10000000000000000000022,
-                A10000000000000000000023,
-                A10000000000000000000024,
+                A10000000000000101,
+                A10000000000000102,
+                A10000000000000103,
+                A10000000000000104,
+                A10000000000000105,
             );
             name = Localizable.strings;
             sourceTree = "<group>";
