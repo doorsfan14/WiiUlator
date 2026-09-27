@@ -555,6 +555,7 @@ struct SimpleDPad: View {
 
 struct SimpleDiamondButtons: View {
     let size: CGFloat
+    let gamePad: WiiUGamePad
 
     var body: some View {
         LazyVGrid(
@@ -622,6 +623,8 @@ struct GamePadButton<Content: View>: View {
 
 struct SimpleShoulderButton: View {
     let title: String
+    let button: WiiUGamePadButton
+    let gamePad: WiiUGamePad
     @State private var pressed = false
 
     var body: some View {
@@ -637,8 +640,16 @@ struct SimpleShoulderButton: View {
             .scaleEffect(pressed ? 0.92 : 1)
             .gesture(
                 DragGesture(minimumDistance: 0)
-                    .onChanged { _ in pressed = true }
-                    .onEnded { _ in pressed = false }
+                    .onChanged { _ in
+                        if !pressed {
+                            pressed = true
+                            gamePad.setButton(button, pressed: true)
+                        }
+                    }
+                    .onEnded { _ in
+                        pressed = false
+                        gamePad.setButton(button, pressed: false)
+                    }
             )
     }
 }
