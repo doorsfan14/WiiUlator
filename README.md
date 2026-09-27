@@ -2,10 +2,6 @@
 
 WiiUlator is an open-source Wii U emulator for iOS, iPadOS, and Android. The project is currently focused on building a portable emulator core alongside native platform frontends.
 
-<p align="center">
-  <img src="docs/wiiulator.png" alt="WiiUlator" width="700">
-</p>
-
 ## Source Code
 
 The repository is organized around the emulator core and platform-specific frontends:
