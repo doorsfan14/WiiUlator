@@ -2,7 +2,7 @@
   <img src="docs/wiiulator.png" alt="WiiUlator app icon" width="128">
 </p>
 
-<p align="left">
+<p align="center">
   <img src="docs/wordmark.png" alt="WiiUlator wordmark" width="140">
 </p>
 
