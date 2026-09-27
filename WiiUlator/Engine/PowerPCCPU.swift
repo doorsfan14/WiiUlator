@@ -112,6 +112,21 @@ final class PowerPCCPU {
             generalPurposeRegisters[ra] = value
             updateCR0(value)
 
+        case 11: // cmpwi
+            let bf = Int((instruction >> 23) & 0x7)
+            let ra = Int((instruction >> 16) & 0x1f)
+            let immediate = signExtend16(instruction)
+            updateCRField(bf, compareSigned(generalPurposeRegisters[ra], UInt32(bitPattern: immediate)))
+
+        case 21: // rlwinm
+            let rs = Int((instruction >> 21) & 0x1f)
+            let ra = Int((instruction >> 16) & 0x1f)
+            let sh = Int((instruction >> 11) & 0x1f)
+            let mb = Int((instruction >> 6) & 0x1f)
+            let me = Int((instruction >> 1) & 0x1f)
+            let rotated = generalPurposeRegisters[rs].rotateLeft(sh)
+            generalPurposeRegisters[ra] = rotated & rotateMask(mb: mb, me: me)
+
         case 32: // lwz
             let rd = Int((instruction >> 21) & 0x1f)
             let ra = Int((instruction >> 16) & 0x1f)
@@ -202,7 +217,7 @@ final class PowerPCCPU {
             executeOpcode19(instruction)
 
         default:
-            break
+            unsupportedInstruction = instruction
         }
     }
 
@@ -247,26 +262,88 @@ final class PowerPCCPU {
         case 19: // mfcr
             generalPurposeRegisters[ra] = conditionRegister
 
+        case 24: // slw
+            generalPurposeRegisters[ra] = generalPurposeRegisters[rs] << (generalPurposeRegisters[rb] & 0x1f)
+        case 536: // srw
+            generalPurposeRegisters[ra] = generalPurposeRegisters[rs] >> (generalPurposeRegisters[rb] & 0x1f)
+        case 792: // sraw
+            let value = Int32(bitPattern: generalPurposeRegisters[rs])
+            let shift = Int(generalPurposeRegisters[rb] & 0x1f)
+            generalPurposeRegisters[ra] = UInt32(bitPattern: value >> shift)
+        case 235: // mullw
+            let lhs = Int64(Int32(bitPattern: generalPurposeRegisters[rs]))
+            let rhs = Int64(Int32(bitPattern: generalPurposeRegisters[rb]))
+            generalPurposeRegisters[ra] = UInt32(bitPattern: Int32(truncatingIfNeeded: lhs * rhs))
+        case 491: // divw
+            let lhs = Int32(bitPattern: generalPurposeRegisters[rs])
+            let rhs = Int32(bitPattern: generalPurposeRegisters[rb])
+            if rhs != 0, !(lhs == Int32.min && rhs == -1) {
+                generalPurposeRegisters[ra] = UInt32(bitPattern: lhs / rhs)
+            }
+        case 534: // lwbrx
+            let address = baseAddress(ra) &+ generalPurposeRegisters[rb]
+            generalPurposeRegisters[rs] = UInt32(memory.read8(at: address))
+                | UInt32(memory.read8(at: address &+ 1)) << 8
+                | UInt32(memory.read8(at: address &+ 2)) << 16
+                | UInt32(memory.read8(at: address &+ 3)) << 24
+        case 662: // stwbrx
+            let address = baseAddress(ra) &+ generalPurposeRegisters[rb]
+            let value = generalPurposeRegisters[rs]
+            memory.write8(at: address, value: UInt8(value & 0xff))
+            memory.write8(at: address &+ 1, value: UInt8((value >> 8) & 0xff))
+            memory.write8(at: address &+ 2, value: UInt8((value >> 16) & 0xff))
+            memory.write8(at: address &+ 3, value: UInt8((value >> 24) & 0xff))
+        case 339: // mfspr
+            let spr = ((instruction >> 16) & 0x1f) | (((instruction >> 11) & 0x1f) << 5)
+            generalPurposeRegisters[ra] = specialRegister(spr)
+        case 467: // mtspr
+            let spr = ((instruction >> 16) & 0x1f) | (((instruction >> 11) & 0x1f) << 5)
+            writeSpecialRegister(spr, value: generalPurposeRegisters[rs])
+        case 144: // mtcrf
+            let crm = (instruction >> 12) & 0xff
+            var newCR = conditionRegister
+            for field in 0..<8 where (crm & (1 << (7 - field))) != 0 {
+                let shift = UInt32((7 - field) * 4)
+                newCR = (newCR & ~(0xF << shift)) | (generalPurposeRegisters[rs] & (0xF << shift))
+            }
+            conditionRegister = newCR
         default:
-            break
+            unsupportedInstruction = instruction
         }
     }
 
     private func executeOpcode19(_ instruction: UInt32) {
         let xo = (instruction >> 1) & 0x3ff
-
-        guard xo == 16 else { return } // bclr
-
         let bo = UInt8((instruction >> 21) & 0x1f)
         let bi = UInt8((instruction >> 16) & 0x1f)
         let lk = (instruction & 1) != 0
 
-        if branchCondition(bo: bo, bi: bi) {
-            programCounter = linkRegister & 0xFFFFFFFC
-        }
-
-        if lk {
-            linkRegister = programCounter
+        switch xo {
+        case 16: // bclr
+            let returnAddress = programCounter
+            if branchCondition(bo: bo, bi: bi) {
+                programCounter = linkRegister & 0xFFFFFFFC
+            }
+            if lk {
+                linkRegister = returnAddress
+            }
+        case 528: // bcctr
+            let target = countRegister & 0xFFFFFFFC
+            if branchCondition(bo: bo, bi: bi) {
+                programCounter = target
+            }
+            if lk {
+                linkRegister = programCounter
+            }
+        case 0: // mcrf
+            let bf = Int((instruction >> 23) & 0x7)
+            let bfa = Int((instruction >> 18) & 0x7)
+            let destinationShift = UInt32((7 - bf) * 4)
+            let sourceShift = UInt32((7 - bfa) * 4)
+            let value = (conditionRegister >> sourceShift) & 0xF
+            conditionRegister = (conditionRegister & ~(0xF << destinationShift)) | (value << destinationShift)
+        default:
+            unsupportedInstruction = instruction
         }
     }
 
@@ -292,15 +369,64 @@ final class PowerPCCPU {
     }
 
     private func branchCondition(bo: UInt8, bi: UInt8) -> Bool {
-        let ignoreCondition = (bo & 0x10) != 0
-        let branchIfTrue = (bo & 0x08) != 0
-        let conditionBit = ((conditionRegister >> (31 - Int(bi))) & 1) != 0
-
-        if ignoreCondition {
-            return true
+        var ctrPass = true
+        if (bo & 0x04) == 0 {
+            countRegister &-= 1
+            ctrPass = ((countRegister != 0) != ((bo & 0x02) != 0))
         }
 
-        return branchIfTrue ? conditionBit : !conditionBit
+        let crPass: Bool
+        if (bo & 0x10) != 0 {
+            crPass = true
+        } else {
+            let conditionBit = ((conditionRegister >> (31 - Int(bi))) & 1) != 0
+            crPass = conditionBit == ((bo & 0x08) != 0)
+        }
+
+        return ctrPass && crPass
+    }
+
+    private func compareSigned(_ lhs: UInt32, _ rhs: UInt32) -> UInt32 {
+        let a = Int32(bitPattern: lhs)
+        let b = Int32(bitPattern: rhs)
+        if a < b { return 0x8 }
+        if a > b { return 0x4 }
+        return 0x2
+    }
+
+    private func updateCRField(_ field: Int, _ value: UInt32) {
+        let shift = UInt32((7 - field) * 4)
+        conditionRegister = (conditionRegister & ~(0xF << shift)) | ((value & 0xF) << shift)
+    }
+
+    private func specialRegister(_ spr: UInt32) -> UInt32 {
+        switch spr {
+        case 1: return xer
+        case 8: return linkRegister
+        case 9: return countRegister
+        default: return 0
+        }
+    }
+
+    private func writeSpecialRegister(_ spr: UInt32, value: UInt32) {
+        switch spr {
+        case 1: xer = value
+        case 8: linkRegister = value
+        case 9: countRegister = value
+        default: break
+        }
+    }
+
+    private func rotateMask(mb: Int, me: Int) -> UInt32 {
+        if mb <= me {
+            let width = me - mb + 1
+            if width == 32 { return UInt32.max }
+            return ((UInt32(1) << UInt32(width)) - 1) << UInt32(31 - me)
+        }
+
+        let left = UInt32.max << UInt32(31 - me)
+        let right = (UInt32(1) << UInt32(32 - mb)) - 1
+        return left | right
     }
 
     private func updateCR0(_ value: UInt32) {
@@ -315,5 +441,14 @@ final class PowerPCCPU {
         }
 
         conditionRegister = (conditionRegister & 0x0FFFFFFF) | (nibble << 28)
+    }
+}
+
+
+private extension UInt32 {
+    func rotateLeft(_ amount: Int) -> UInt32 {
+        let shift = amount & 31
+        if shift == 0 { return self }
+        return (self << UInt32(shift)) | (self >> UInt32(32 - shift))
     }
 }
