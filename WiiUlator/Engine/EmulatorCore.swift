@@ -28,17 +28,20 @@ enum EmulatorState: Equatable {
 final class EmulatorCore {
     let memory: EmulatorMemory
     let cpu: PowerPCCPU
+    let gamePad: WiiUGamePad
     private(set) var loadedProgram: EmulatorProgram?
     private(set) var instructionCount: UInt64 = 0
 
     init(memorySize: Int = 64 * 1024 * 1024) {
         self.memory = EmulatorMemory(size: memorySize)
         self.cpu = PowerPCCPU()
+        self.gamePad = WiiUGamePad()
     }
 
     func reset() {
         memory.reset()
         cpu.reset()
+        gamePad.reset()
         loadedProgram = nil
         instructionCount = 0
     }
