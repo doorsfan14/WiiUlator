@@ -85,7 +85,7 @@ struct LibraryView: View {
             }
             .navigationTitle("Library")
             .searchable(text: $searchText, prompt: "Search games")
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
                         showingImporter = true
@@ -94,7 +94,7 @@ struct LibraryView: View {
                     }
                     .accessibilityLabel("Import Game")
                 }
-            }
+            })
             .fileImporter(
                 isPresented: $showingImporter,
                 allowedContentTypes: [.data, .folder],
