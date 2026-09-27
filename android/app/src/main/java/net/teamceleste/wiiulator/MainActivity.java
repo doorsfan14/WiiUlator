@@ -39,7 +39,7 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
         DynamicColors.applyToActivityIfAvailable(this);
-        BG = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurface, Color.BLACK);
+        BG = MaterialColors.getColor(this, android.R.attr.colorBackground, Color.BLACK);
         PANEL = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurfaceContainer, BG);
         PANEL2 = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurfaceContainerHigh, PANEL);
         BLUE = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary, Color.BLUE);
@@ -178,7 +178,8 @@ public final class MainActivity extends Activity {
     }
 
     private Button primaryButton(String label){
-        com.google.android.material.button.MaterialButton b=new com.google.android.material.button.MaterialButton(this);b.setText(label);b.setTextSize(12);b.setTextColor(Color.WHITE);b.setAllCaps(false);
+        com.google.android.material.button.MaterialButton b=new com.google.android.material.button.MaterialButton(this);
+        b.setText(label);b.setTextSize(12);b.setTextColor(Color.WHITE);b.setAllCaps(false);
         b.setTypeface(Typeface.DEFAULT,Typeface.BOLD);b.setBackground(gradient(dp(14)));return b;
     }
 
@@ -220,7 +221,7 @@ public final class MainActivity extends Activity {
         settingGroup("LANGUAGE");
         settingRow("Language","System Language","▤",v->showLanguage());
         settingGroup("EMULATION");
-        settingRow("Graphics","Metal · Auto · 16:9","▣",v->showGraphics());
+        settingRow("Graphics","Vulkan · Auto · 16:9","▣",v->showGraphics());
         settingRow("Controls","Wii U GamePad · Rumble","◉",v->showControls());
         settingRow("Audio","Enabled · 100%","♫",v->showAudio());
         settingRow("System","Memory · JIT · Performance","⚙",v->showSystem());
