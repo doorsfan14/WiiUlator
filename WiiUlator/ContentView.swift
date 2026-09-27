@@ -299,10 +299,10 @@ struct TouchFaceButtons: View {
 
     var body: some View {
         ZStack {
-            TouchFaceButton("X", offset: CGSize(width: 0, height: -size * 0.55))
-            TouchFaceButton("Y", offset: CGSize(width: -size * 0.55, height: 0))
-            TouchFaceButton("A", offset: CGSize(width: size * 0.55, height: 0))
-            TouchFaceButton("B", offset: CGSize(width: 0, height: size * 0.55))
+            TouchFaceButton(title: "X", offset: CGSize(width: 0, height: -size * 0.55))
+            TouchFaceButton(title: "Y", offset: CGSize(width: -size * 0.55, height: 0))
+            TouchFaceButton(title: "A", offset: CGSize(width: size * 0.55, height: 0))
+            TouchFaceButton(title: "B", offset: CGSize(width: 0, height: size * 0.55))
         }
         .frame(width: size * 2.2, height: size * 2.2)
     }
@@ -434,6 +434,7 @@ struct SettingsView: View {
 struct GraphicsSettingsView: View {
     @AppStorage("graphicsBackend") private var graphicsBackend = "Metal"
     @AppStorage("graphicsQuality") private var graphicsQuality = "Auto"
+    @AppStorage("gameResolution") private var gameResolution = "Native"
     @AppStorage("performanceMode") private var performanceMode = false
     @AppStorage("thirtyFPSFullSpeed") private var thirtyFPSFullSpeed = true
 
@@ -444,6 +445,20 @@ struct GraphicsSettingsView: View {
                     Text("Metal").tag("Metal")
                     Text("Vulkan (Experimental)").tag("Vulkan")
                 }
+            }
+
+            Section("Game Resolution") {
+                Picker("Resolution", selection: $gameResolution) {
+                    Text("Native").tag("Native")
+                    Text("1280 × 720").tag("1280x720")
+                    Text("1600 × 900").tag("1600x900")
+                    Text("1920 × 1080").tag("1920x1080")
+                    Text("2560 × 1440").tag("2560x1440")
+                }
+
+                Text("This controls the internal emulated render resolution. It does not change the iPhone's physical display resolution.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
 
             Section("Rendering") {
