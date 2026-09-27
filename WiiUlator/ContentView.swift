@@ -1202,11 +1202,66 @@ struct AudioSettingsView: View {
     }
 }
 
+private enum EmulatorMemoryPolicy {
+    static let minimumMB = 512
+    static let stepMB = 256
+
+    static var physicalMemoryMB: Int {
+        let bytes = ProcessInfo.processInfo.physicalMemory
+        return max(minimumMB, Int(bytes / (1024 * 1024)))
+    }
+
+    static var maximumMB: Int {
+        physicalMemoryMB
+    }
+
+    static var recommendedMB: Int {
+        let total = physicalMemoryMB
+        let reserved = total <= 4096 ? 1536 : 2048
+        let available = max(minimumMB, total - reserved)
+        let percentage = Int(Double(total) * (total <= 4096 ? 0.50 : 0.60))
+        let recommended = min(available, percentage)
+        return max(minimumMB, (recommended / stepMB) * stepMB)
+    }
+
+    static func clamped(_ value: Int) -> Int {
+        let rounded = max(minimumMB, min(maximumMB, value))
+        return (rounded / stepMB) * stepMB
+    }
+
+    static func format(_ megabytes: Int) -> String {
+        if megabytes >= 1024 {
+            let gigabytes = Double(megabytes) / 1024.0
+            return gigabytes.rounded() == gigabytes
+                ? String(format: "%.0f GB", gigabytes)
+                : String(format: "%.1f GB", gigabytes)
+        }
+        return "\(megabytes) MB"
+    }
+}
+
 struct SystemSettingsView: View {
     @AppStorage("autoSave") private var autoSave = true
     @AppStorage("confirmExit") private var confirmExit = true
+    @AppStorage("maximumRAMMB") private var maximumRAMMB = EmulatorMemoryPolicy.recommendedMB
+
     private var jitEnabled: Bool {
         JITStatus.isEnabled
+    }
+
+    private var ramValue: Binding<Double> {
+        Binding(
+            get: {
+                Double(EmulatorMemoryPolicy.clamped(maximumRAMMB))
+            },
+            set: {
+                maximumRAMMB = EmulatorMemoryPolicy.clamped(Int($0))
+            }
+        )
+    }
+
+    private var exceedsRecommendation: Bool {
+        maximumRAMMB > EmulatorMemoryPolicy.recommendedMB
     }
 
     var body: some View {
@@ -1214,6 +1269,52 @@ struct SystemSettingsView: View {
             Section("System") {
                 Toggle("Auto Save", isOn: $autoSave)
                 Toggle("Confirm Before Exit", isOn: $confirmExit)
+            }
+
+            Section("Memory") {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Maximum RAM")
+                        Spacer()
+                        Text(EmulatorMemoryPolicy.format(maximumRAMMB))
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+
+                    Slider(
+                        value: ramValue,
+                        in: Double(EmulatorMemoryPolicy.minimumMB)...Double(EmulatorMemoryPolicy.maximumMB),
+                        step: Double(EmulatorMemoryPolicy.stepMB)
+                    )
+                    .accessibilityValue(EmulatorMemoryPolicy.format(maximumRAMMB))
+
+                    HStack {
+                        Text("512 MB")
+                        Spacer()
+                        Text(EmulatorMemoryPolicy.format(EmulatorMemoryPolicy.maximumMB))
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+
+                LabeledContent(
+                    "Recommended",
+                    value: EmulatorMemoryPolicy.format(EmulatorMemoryPolicy.recommendedMB)
+                )
+
+                if exceedsRecommendation {
+                    Label {
+                        Text("Putting a higher RAM amount than your device’s recommended memory will most likely cause crashes and game instability.")
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                    }
+                    .foregroundStyle(.orange)
+                    .font(.footnote)
+                } else {
+                    Text("The recommendation is calculated from this device’s physical memory, leaving headroom for iOS and WiiUlator itself.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Section("JIT") {
@@ -1233,6 +1334,9 @@ struct SystemSettingsView: View {
         }
         .navigationTitle("System")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            maximumRAMMB = EmulatorMemoryPolicy.clamped(maximumRAMMB)
+        }
     }
 }
 
