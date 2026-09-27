@@ -828,7 +828,7 @@ private enum WiiUSystemUpdater {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.httpBody = body.data(using: .utf8)
-        request.setValue(""urn:nus.wsapi.broadon.com/GetSystemUpdate"", forHTTPHeaderField: "SOAPAction")
+        request.setValue("\"urn:nus.wsapi.broadon.com/GetSystemUpdate\"", forHTTPHeaderField: "SOAPAction")
         request.setValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
         request.setValue("wii libnup/1.0", forHTTPHeaderField: "User-Agent")
         request.timeoutInterval = 20
