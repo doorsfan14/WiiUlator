@@ -354,10 +354,11 @@ struct EmulatorVideoView: View {
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 60.0)) { _ in
-            ZStack {
-                Color.black
+            GeometryReader { proxy in
+                ZStack {
+                    Color.black
 
-                VStack(spacing: 8) {
+                    VStack(spacing: 8) {
                     Image(systemName: isFailed ? "exclamationmark.triangle" : "gamecontroller")
                         .font(.system(size: 34, weight: .medium))
                         .foregroundStyle(.white.opacity(0.32))
@@ -377,6 +378,9 @@ struct EmulatorVideoView: View {
                             .font(.system(size: 12, design: .monospaced))
                             .foregroundStyle(.white.opacity(0.45))
                     }
+                    }
+                    .aspectRatio(displayAspectRatio == "4:3" ? 4.0 / 3.0 : 16.0 / 9.0, contentMode: .fit)
+                    .frame(maxWidth: proxy.size.width, maxHeight: proxy.size.height)
                 }
             }
             .onAppear {
