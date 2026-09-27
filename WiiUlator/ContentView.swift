@@ -475,7 +475,7 @@ struct SimpleTouchControls: View {
 
                     Spacer()
 
-                    SimpleDiamondButtons(size: buttonSize)
+                    SimpleDiamondButtons(size: buttonSize, gamePad: gamePad)
                 }
                 .padding(.horizontal, compact ? 20 : 32)
                 .padding(.bottom, compact ? 20 : 30)
