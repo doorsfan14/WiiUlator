@@ -112,7 +112,7 @@ struct LibraryView: View {
             .safeAreaInset(edge: .bottom) {
                 HStack {
                     Image(systemName: "folder")
-                    Text("Games: Apps/Games")
+                    Text("Games: games")
                     Spacer()
                     Text("\(library.games.count)")
                         .foregroundStyle(.secondary)
@@ -732,7 +732,7 @@ struct GamesFolderView: View {
     var body: some View {
         Form {
             Section("Location") {
-                LabeledContent("Folder", value: "Apps/Games")
+                LabeledContent("Folder", value: "games")
                 Text(gamesURL.path)
                     .font(.footnote.monospaced())
                     .foregroundStyle(.secondary)
@@ -740,7 +740,7 @@ struct GamesFolderView: View {
             }
 
             Section {
-                Text("Imported games are copied into WiiUlator's app container at Documents/Apps/Games. Game files are not included with WiiUlator.")
+                Text("Imported games are copied into WiiUlator's app container at Documents/games. Game files are not included with WiiUlator.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -782,7 +782,7 @@ final class GameLibraryStore: ObservableObject {
 
     static var gamesFolderURL: URL {
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        return documents.appendingPathComponent("Apps/Games", isDirectory: true)
+        return documents.appendingPathComponent("games", isDirectory: true)
     }
 
     private init() {
