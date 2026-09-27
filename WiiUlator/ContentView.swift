@@ -92,170 +92,255 @@ struct DemoGameView: View {
             Color.black
                 .ignoresSafeArea()
 
-            VStack(spacing: 12) {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(
-                        LinearGradient(
-                            colors: [.blue, .purple],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay {
-                        VStack(spacing: 8) {
-                            Image(systemName: "flag.checkered")
-                                .font(.system(size: 48))
-                            Text("Mario Kart 8")
-                                .font(.title)
-                                .fontWeight(.bold)
-                            Text("Wii U GamePad Demo")
-                                .font(.subheadline)
-                        }
-                        .foregroundStyle(.white)
+            GeometryReader { proxy in
+                ZStack {
+                    GameDisplay()
+                        .frame(width: proxy.size.width, height: proxy.size.height)
+                        .ignoresSafeArea()
+
+                    if showingGamePad {
+                        GamePadOverlay()
+                            .frame(width: proxy.size.width, height: proxy.size.height)
+                            .ignoresSafeArea()
+                            .transition(.opacity)
                     }
-                    .aspectRatio(16 / 9, contentMode: .fit)
-                    .padding(.horizontal)
 
-                Text("Emulator display preview")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
+                    VStack {
+                        HStack {
+                            Spacer()
 
-            if showingGamePad {
-                GamePadOverlay()
-                    .transition(.opacity)
-            }
-        }
-        .navigationTitle("Mario Kart 8")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(showingGamePad ? "Hide GamePad" : "Show GamePad") {
-                    withAnimation {
-                        showingGamePad.toggle()
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    showingGamePad.toggle()
+                                }
+                            } label: {
+                                Image(systemName: showingGamePad ? "gamecontroller.fill" : "gamecontroller")
+                                    .font(.title3)
+                                    .frame(width: 44, height: 44)
+                                    .background(.black.opacity(0.55), in: Circle())
+                            }
+                            .foregroundStyle(.white)
+                            .padding()
+                        }
+
+                        Spacer()
                     }
                 }
             }
+        }
+        .statusBarHidden(true)
+        .persistentSystemOverlays(.hidden)
+        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
+    }
+}
+
+struct GameDisplay: View {
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [.blue, .purple, .black],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            VStack(spacing: 10) {
+                Image(systemName: "flag.checkered")
+                    .font(.system(size: 64))
+
+                Text("MARIO KART 8")
+                    .font(.system(size: 34, weight: .heavy, design: .rounded))
+
+                Text("Wii U emulator display")
+                    .font(.headline)
+                    .foregroundStyle(.white.opacity(0.75))
+            }
+            .foregroundStyle(.white)
         }
     }
 }
 
 struct GamePadOverlay: View {
     var body: some View {
-        VStack {
-            Spacer()
+        GeometryReader { proxy in
+            let compact = proxy.size.width < 700
+            let scale = min(proxy.size.width / 1024, proxy.size.height / 768)
+            let padWidth = min(proxy.size.width * 0.92, 920 * scale)
+            let padHeight = padWidth * 0.42
 
-            HStack(alignment: .bottom, spacing: 14) {
-                VStack(spacing: 12) {
-                    Text("Wii U GamePad")
-                        .font(.caption)
-                        .fontWeight(.semibold)
+            VStack {
+                Spacer()
 
-                    HStack(spacing: 18) {
-                        VirtualStick(title: "L")
-                        DPadView()
-                    }
-                }
-
-                Spacer(minLength: 4)
-
-                VStack(spacing: 10) {
-                    Text("Touch Screen")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(.black)
-                        .overlay {
-                            VStack(spacing: 4) {
-                                Image(systemName: "hand.tap")
-                                Text("GamePad")
-                                    .font(.caption2)
-                            }
-                            .foregroundStyle(.secondary)
-                        }
-                        .frame(width: 130, height: 78)
-                }
-
-                Spacer(minLength: 4)
-
-                VStack(spacing: 12) {
-                    HStack(spacing: 10) {
-                        GameButton(title: "X")
-                        GameButton(title: "Y")
-                    }
-
-                    HStack(spacing: 10) {
-                        GameButton(title: "B")
-                        GameButton(title: "A")
-                    }
-
-                    Text("R")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                }
+                WiiUGamePadSurface(compact: compact)
+                    .frame(width: padWidth, height: padHeight)
+                    .shadow(radius: 18)
+                    .padding(.bottom, compact ? 12 : 24)
             }
-            .padding(14)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
-            .overlay {
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(.white.opacity(0.15), lineWidth: 1)
-            }
-            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .allowsHitTesting(true)
     }
 }
 
-struct VirtualStick: View {
-    let title: String
+struct WiiUGamePadSurface: View {
+    let compact: Bool
 
     var body: some View {
-        VStack(spacing: 4) {
-            Circle()
-                .fill(.gray.opacity(0.8))
-                .frame(width: 54, height: 54)
-                .overlay {
-                    Circle()
-                        .stroke(.white.opacity(0.25), lineWidth: 2)
-                }
+        GeometryReader { proxy in
+            let w = proxy.size.width
+            let h = proxy.size.height
+            let screenWidth = w * (compact ? 0.32 : 0.34)
 
-            Text(title)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+            ZStack {
+                RoundedRectangle(cornerRadius: h * 0.20, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [.white.opacity(0.98), .gray.opacity(0.92)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+
+                RoundedRectangle(cornerRadius: h * 0.20, style: .continuous)
+                    .stroke(.black.opacity(0.35), lineWidth: 2)
+
+                HStack(spacing: 0) {
+                    GamePadControlsLeft(compact: compact)
+                        .frame(width: (w - screenWidth) / 2)
+
+                    RoundedRectangle(cornerRadius: h * 0.08)
+                        .fill(.black)
+                        .frame(width: screenWidth, height: h * 0.72)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: h * 0.08)
+                                .stroke(.gray.opacity(0.7), lineWidth: 2)
+
+                            VStack(spacing: 4) {
+                                Text("Wii U")
+                                    .font(.system(size: max(9, h * 0.075), weight: .semibold, design: .rounded))
+                                Text("GAMEPAD")
+                                    .font(.system(size: max(7, h * 0.045), weight: .medium))
+                                    .foregroundStyle(.gray)
+                            }
+                            .foregroundStyle(.white)
+                        }
+
+                    GamePadControlsRight(compact: compact)
+                        .frame(width: (w - screenWidth) / 2)
+                }
+                .padding(.horizontal, w * 0.025)
+            }
         }
     }
 }
 
-struct DPadView: View {
+struct GamePadControlsLeft: View {
+    let compact: Bool
+
+    var body: some View {
+        HStack(spacing: compact ? 8 : 18) {
+            GamePadStick(label: "L", size: compact ? 46 : 58)
+
+            GamePadDPad(size: compact ? 40 : 52)
+        }
+    }
+}
+
+struct GamePadControlsRight: View {
+    let compact: Bool
+
+    var body: some View {
+        HStack(spacing: compact ? 8 : 18) {
+            GamePadButtons(size: compact ? 34 : 46)
+
+            GamePadStick(label: "R", size: compact ? 46 : 58)
+        }
+    }
+}
+
+struct GamePadStick: View {
+    let label: String
+    let size: CGFloat
+
+    var body: some View {
+        VStack(spacing: 2) {
+            ZStack {
+                Circle()
+                    .fill(.black.opacity(0.78))
+                    .frame(width: size, height: size)
+
+                Circle()
+                    .fill(.gray.opacity(0.55))
+                    .frame(width: size * 0.72, height: size * 0.72)
+
+                Circle()
+                    .stroke(.white.opacity(0.2), lineWidth: 1)
+                    .frame(width: size * 0.72, height: size * 0.72)
+            }
+
+            Text(label)
+                .font(.system(size: max(8, size * 0.18), weight: .semibold))
+                .foregroundStyle(.black.opacity(0.6))
+        }
+    }
+}
+
+struct GamePadDPad: View {
+    let size: CGFloat
+
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 6)
-                .frame(width: 22, height: 58)
+            RoundedRectangle(cornerRadius: 5)
+                .fill(.black.opacity(0.82))
+                .frame(width: size * 0.34, height: size)
 
-            RoundedRectangle(cornerRadius: 6)
-                .frame(width: 58, height: 22)
+            RoundedRectangle(cornerRadius: 5)
+                .fill(.black.opacity(0.82))
+                .frame(width: size, height: size * 0.34)
         }
-        .foregroundStyle(.gray.opacity(0.8))
         .overlay {
-            Image(systemName: "arrow.up")
-                .font(.caption2)
-                .foregroundStyle(.white.opacity(0.8))
+            Image(systemName: "plus")
+                .font(.system(size: size * 0.28, weight: .bold))
+                .foregroundStyle(.white.opacity(0.18))
         }
     }
 }
 
-struct GameButton: View {
+struct GamePadButtons: View {
+    let size: CGFloat
+
+    var body: some View {
+        ZStack {
+            GamePadFaceButton("X", x: 0, y: -size * 0.72)
+            GamePadFaceButton("Y", x: -size * 0.72, y: 0)
+            GamePadFaceButton("A", x: size * 0.72, y: 0)
+            GamePadFaceButton("B", x: 0, y: size * 0.72)
+        }
+        .frame(width: size * 2.3, height: size * 2.3)
+    }
+}
+
+struct GamePadFaceButton: View {
     let title: String
+    let x: CGFloat
+    let y: CGFloat
+
+    init(_ title: String, x: CGFloat, y: CGFloat) {
+        self.title = title
+        self.x = x
+        self.y = y
+    }
 
     var body: some View {
         Circle()
-            .fill(.gray.opacity(0.85))
-            .frame(width: 38, height: 38)
+            .fill(.black.opacity(0.82))
+            .frame(width: 30, height: 30)
             .overlay {
                 Text(title)
-                    .font(.caption)
-                    .fontWeight(.bold)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(.white)
             }
+            .offset(x: x, y: y)
     }
 }
 
