@@ -31,21 +31,32 @@ struct LibraryView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 12) {
-                Image(systemName: "gamecontroller")
-                    .font(.system(size: 42))
-                    .foregroundStyle(.secondary)
+            List {
+                NavigationLink {
+                    DemoGameView()
+                } label: {
+                    HStack(spacing: 12) {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(.blue.gradient)
+                            .frame(width: 56, height: 56)
+                            .overlay {
+                                Image(systemName: "gamecontroller.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(.white)
+                            }
 
-                Text("No Games")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Mario Kart 8")
+                                .font(.headline)
 
-                Text("Import a Wii U game to add it to your library.")
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+                            Text("GamePad Overlay Demo")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
             }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle("Library")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -63,7 +74,188 @@ struct LibraryView: View {
                 allowsMultipleSelection: false
             ) { _ in
             }
+            .safeAreaInset(edge: .bottom) {
+                Text("Demo entry — no game files are included with WiiUlator.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 6)
+            }
         }
+    }
+}
+
+struct DemoGameView: View {
+    @State private var showingGamePad = true
+
+    var body: some View {
+        ZStack {
+            Color.black
+                .ignoresSafeArea()
+
+            VStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(
+                        LinearGradient(
+                            colors: [.blue, .purple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay {
+                        VStack(spacing: 8) {
+                            Image(systemName: "flag.checkered")
+                                .font(.system(size: 48))
+                            Text("Mario Kart 8")
+                                .font(.title)
+                                .fontWeight(.bold)
+                            Text("Wii U GamePad Demo")
+                                .font(.subheadline)
+                        }
+                        .foregroundStyle(.white)
+                    }
+                    .aspectRatio(16 / 9, contentMode: .fit)
+                    .padding(.horizontal)
+
+                Text("Emulator display preview")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            if showingGamePad {
+                GamePadOverlay()
+                    .transition(.opacity)
+            }
+        }
+        .navigationTitle("Mario Kart 8")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(showingGamePad ? "Hide GamePad" : "Show GamePad") {
+                    withAnimation {
+                        showingGamePad.toggle()
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct GamePadOverlay: View {
+    var body: some View {
+        VStack {
+            Spacer()
+
+            HStack(alignment: .bottom, spacing: 14) {
+                VStack(spacing: 12) {
+                    Text("Wii U GamePad")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+
+                    HStack(spacing: 18) {
+                        VirtualStick(title: "L")
+                        DPadView()
+                    }
+                }
+
+                Spacer(minLength: 4)
+
+                VStack(spacing: 10) {
+                    Text("Touch Screen")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(.black)
+                        .overlay {
+                            VStack(spacing: 4) {
+                                Image(systemName: "hand.tap")
+                                Text("GamePad")
+                                    .font(.caption2)
+                            }
+                            .foregroundStyle(.secondary)
+                        }
+                        .frame(width: 130, height: 78)
+                }
+
+                Spacer(minLength: 4)
+
+                VStack(spacing: 12) {
+                    HStack(spacing: 10) {
+                        GameButton(title: "X")
+                        GameButton(title: "Y")
+                    }
+
+                    HStack(spacing: 10) {
+                        GameButton(title: "B")
+                        GameButton(title: "A")
+                    }
+
+                    Text("R")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                }
+            }
+            .padding(14)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+            .overlay {
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(.white.opacity(0.15), lineWidth: 1)
+            }
+            .padding()
+        }
+    }
+}
+
+struct VirtualStick: View {
+    let title: String
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Circle()
+                .fill(.gray.opacity(0.8))
+                .frame(width: 54, height: 54)
+                .overlay {
+                    Circle()
+                        .stroke(.white.opacity(0.25), lineWidth: 2)
+                }
+
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+struct DPadView: View {
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 6)
+                .frame(width: 22, height: 58)
+
+            RoundedRectangle(cornerRadius: 6)
+                .frame(width: 58, height: 22)
+        }
+        .foregroundStyle(.gray.opacity(0.8))
+        .overlay {
+            Image(systemName: "arrow.up")
+                .font(.caption2)
+                .foregroundStyle(.white.opacity(0.8))
+        }
+    }
+}
+
+struct GameButton: View {
+    let title: String
+
+    var body: some View {
+        Circle()
+            .fill(.gray.opacity(0.85))
+            .frame(width: 38, height: 38)
+            .overlay {
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(.bold)
+            }
     }
 }
 
