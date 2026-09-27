@@ -20,6 +20,11 @@
         A10000000000000000000005 = { isa = PBXBuildFile; fileRef = A10000000000000000000016; };
         A10000000000000000000006 = { isa = PBXBuildFile; fileRef = A10000000000000000000018; };
         A10000000000000000000007 = { isa = PBXBuildFile; fileRef = A10000000000000000000019; };
+        A10000000000000000000008 = { isa = PBXBuildFile; fileRef = A10000000000000000000020; };
+        A10000000000000000000009 = { isa = PBXBuildFile; fileRef = A10000000000000000000021; };
+        A1000000000000000000000A = { isa = PBXBuildFile; fileRef = A10000000000000000000022; };
+        A1000000000000000000000B = { isa = PBXBuildFile; fileRef = A10000000000000000000023; };
+        A1000000000000000000000C = { isa = PBXBuildFile; fileRef = A10000000000000000000024; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +46,11 @@
         A10000000000000000000017 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine/EmulatorCoreTests.swift; sourceTree = "<group>"; };
         A10000000000000000000018 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine/WiiUExecutableLoader.swift; sourceTree = "<group>"; };
         A10000000000000000000019 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine/WiiUGamePad.swift; sourceTree = "<group>"; };
+        A10000000000000000000020 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = en-GB.lproj/Localizable.strings; sourceTree = "<group>"; };
+        A10000000000000000000021 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+        A10000000000000000000022 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = pt.lproj/Localizable.strings; sourceTree = "<group>"; };
+        A10000000000000000000023 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+        A10000000000000000000024 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = zh-Hans.lproj/Localizable.strings; sourceTree = "<group>"; };
         A10000000000000000000013 = {
             isa = PBXFileReference;
             explicitFileType = wrapper.application;
@@ -71,6 +81,11 @@
                 A10000000000000000000016,
                 A10000000000000000000018,
                 A10000000000000000000019,
+                A10000000000000000000020,
+                A10000000000000000000021,
+                A10000000000000000000022,
+                A10000000000000000000023,
+                A10000000000000000000024,
             );
             path = WiiUlator;
             sourceTree = "<group>";
@@ -130,6 +145,11 @@
             hasScannedForEncodings = 0;
             knownRegions = (
                 en,
+                en-GB,
+                es,
+                pt,
+                ja,
+                zh-Hans,
                 Base,
             );
             mainGroup = A10000000000000000000032;
