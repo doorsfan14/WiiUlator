@@ -338,6 +338,13 @@ struct DemoGameView: View {
 struct EmulatorVideoView: View {
     @ObservedObject var session: EmulatorSession
 
+    private var isFailed: Bool {
+        if case .failed = session.state {
+            return true
+        }
+        return false
+    }
+
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 60.0)) { _ in
             ZStack {
