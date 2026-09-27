@@ -106,6 +106,7 @@ struct GameIconView: View {
 }
 
 struct DemoGameView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var showingControls = true
     @State private var showingStopConfirmation = false
 
@@ -697,11 +698,22 @@ private struct DeviceInfo {
 
 private enum JITStatus {
     static var isEnabled: Bool {
-        #if DEBUG
-        return false
-        #else
-        return false
-        #endif
+        let pageSize = getpagesize()
+        let memory = mmap(
+            nil,
+            pageSize,
+            PROT_READ | PROT_WRITE | PROT_EXEC,
+            MAP_PRIVATE | MAP_ANON | MAP_JIT,
+            -1,
+            0
+        )
+
+        guard memory != MAP_FAILED else {
+            return false
+        }
+
+        munmap(memory, pageSize)
+        return true
     }
 }
 
