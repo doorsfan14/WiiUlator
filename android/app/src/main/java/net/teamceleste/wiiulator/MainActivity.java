@@ -3,33 +3,28 @@ package net.teamceleste.wiiulator;
 import android.app.*;
 import android.os.*;
 import android.content.*;
+import android.content.res.ColorStateList;
 import android.graphics.*;
-import android.graphics.drawable.*;
 import android.net.Uri;
 import android.view.*;
 import android.widget.*;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.color.MaterialColors;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import java.io.*;
 import java.util.*;
 
 public final class MainActivity extends Activity {
-    
-    private LinearLayout page, content;
-    private int selectedTab = 0;
+    private LinearLayout content;
+    private int BG, SURFACE, PRIMARY, TEXT, MUTED;
     private final ArrayList<Game> games = new ArrayList<>();
     private final HashSet<String> favorites = new HashSet<>();
     private android.content.SharedPreferences prefs;
     private static final int PICK = 7;
-
-    private static int BG;
-    private static int PANEL;
-    private static int PANEL2;
-    private static int BLUE;
-    private static int CYAN;
-    private static int TEXT;
-    private static int MUTED;
 
     private static final class Game {
         final String name, provider, version;
@@ -39,340 +34,465 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
         DynamicColors.applyToActivityIfAvailable(this);
-        BG = MaterialColors.getColor(this, android.R.attr.colorBackground, Color.BLACK);
-        PANEL = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurfaceContainer, BG);
-        PANEL2 = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurfaceContainerHigh, PANEL);
-        BLUE = MaterialColors.getColor(this, android.R.attr.colorAccent, Color.BLUE);
-        CYAN = MaterialColors.getColor(this, android.R.attr.colorAccent, BLUE);
-        TEXT = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface, Color.WHITE);
-        MUTED = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant, TEXT);
+        BG = MaterialColors.getColor(this, android.R.attr.colorBackground, Color.rgb(248,248,248));
+        PRIMARY = MaterialColors.getColor(this, android.R.attr.colorAccent, Color.rgb(60,90,255));
+        TEXT = MaterialColors.getColor(this, android.R.attr.textColorPrimary, Color.BLACK);
+        MUTED = MaterialColors.getColor(this, android.R.attr.textColorSecondary, Color.DKGRAY);
+        SURFACE = blend(BG, Color.WHITE, 0.55f);
         prefs = getSharedPreferences("wiiulator", MODE_PRIVATE);
         setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         buildShell();
         showLibrary();
     }
 
-    private GradientDrawable bg(int color, float radius) {
-        GradientDrawable d = new GradientDrawable();
-        d.setColor(color);
-        d.setCornerRadius(radius);
-        return d;
-    }
-
-    private GradientDrawable gradient(float radius) {
-        GradientDrawable d = new GradientDrawable(
-            GradientDrawable.Orientation.TL_BR,
-            new int[]{Color.rgb(0, 119, 190), Color.rgb(0, 205, 255)}
+    private int blend(int a,int b,float amount) {
+        return Color.rgb(
+            (int)(Color.red(a)+(Color.red(b)-Color.red(a))*amount),
+            (int)(Color.green(a)+(Color.green(b)-Color.green(a))*amount),
+            (int)(Color.blue(a)+(Color.blue(b)-Color.blue(a))*amount)
         );
-        d.setCornerRadius(radius);
-        return d;
-    }
-
-    private TextView text(String value, float size, int color) {
-        TextView t = new TextView(this);
-        t.setText(value);
-        t.setTextSize(size);
-        t.setTextColor(color);
-        t.setGravity(Gravity.CENTER_VERTICAL);
-        return t;
     }
 
     private int dp(int v) { return (int)(v * getResources().getDisplayMetrics().density + .5f); }
 
-    private LinearLayout lpRow() {
-        LinearLayout l = new LinearLayout(this);
-        l.setOrientation(LinearLayout.HORIZONTAL);
-        l.setGravity(Gravity.CENTER_VERTICAL);
-        return l;
+    private TextView text(String value,float size,int color) {
+        TextView t=new TextView(this);
+        t.setText(value); t.setTextSize(size); t.setTextColor(color);
+        t.setGravity(Gravity.CENTER_VERTICAL);
+        return t;
+    }
+
+    private MaterialCardView card() {
+        MaterialCardView c=new MaterialCardView(this);
+        c.setCardBackgroundColor(SURFACE);
+        c.setRadius(dp(20));
+        c.setStrokeWidth(dp(1));
+        c.setStrokeColor(blend(BG,Color.GRAY,.15f));
+        c.setUseCompatPadding(false);
+        return c;
+    }
+
+    private MaterialButton button(String label, int icon) {
+        MaterialButton b=new MaterialButton(this);
+        b.setText(label);
+        b.setAllCaps(false);
+        b.setTextSize(14);
+        b.setIconResource(icon);
+        b.setIconGravity(MaterialButton.ICON_GRAVITY_TEXT_START);
+        b.setIconPadding(dp(8));
+        b.setCornerRadius(dp(14));
+        b.setBackgroundTintList(ColorStateList.valueOf(PRIMARY));
+        b.setTextColor(Color.WHITE);
+        b.setPadding(dp(16),0,dp(16),0);
+        return b;
     }
 
     private void buildShell() {
-        LinearLayout root = new LinearLayout(this);
+        LinearLayout root=new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(BG);
 
-        FrameLayout frame = new FrameLayout(this);
-        page = new LinearLayout(this);
-        page.setOrientation(LinearLayout.VERTICAL);
-        frame.addView(page, new FrameLayout.LayoutParams(-1,-1));
-        root.addView(frame, new LinearLayout.LayoutParams(-1,0,1));
+        LinearLayout appbar=new LinearLayout(this);
+        appbar.setOrientation(LinearLayout.VERTICAL);
+        appbar.setPadding(dp(20),dp(18),dp(20),dp(10));
+        TextView brand=text("WiiUlator",24,TEXT);
+        brand.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        appbar.addView(brand,new LinearLayout.LayoutParams(-1,dp(34)));
+        TextView sub=text("Wii U emulation for Android",13,MUTED);
+        appbar.addView(sub,new LinearLayout.LayoutParams(-1,dp(24)));
+        root.addView(appbar);
 
-        BottomNavigationView nav = new BottomNavigationView(this);
+        FrameLayout frame=new FrameLayout(this);
+        content=new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        ScrollView scroll=new ScrollView(this);
+        scroll.setFillViewport(true);
+        scroll.addView(content);
+        frame.addView(scroll,new FrameLayout.LayoutParams(-1,-1));
+        root.addView(frame,new LinearLayout.LayoutParams(-1,0,1));
+
+        BottomNavigationView nav=new BottomNavigationView(this);
+        nav.getMenu().add(0,1,0,"Library").setIcon(net.teamceleste.wiiulator.R.drawable.ic_library);
+        nav.getMenu().add(0,2,1,"Favorites").setIcon(net.teamceleste.wiiulator.R.drawable.ic_star);
+        nav.getMenu().add(0,3,2,"Settings").setIcon(net.teamceleste.wiiulator.R.drawable.ic_settings);
         nav.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);
-        nav.getMenu().add(0, 1, 0, "Library").setIcon(android.R.drawable.ic_menu_view);
-        nav.getMenu().add(0, 2, 1, "Favorites").setIcon(android.R.drawable.btn_star_big_off);
-        nav.getMenu().add(0, 3, 2, "Settings").setIcon(android.R.drawable.ic_menu_preferences);
         nav.setOnItemSelectedListener(item -> {
-            selectedTab = item.getItemId() - 1;
-            if (item.getItemId() == 1) showLibrary();
-            else if (item.getItemId() == 2) showFavorites();
+            if(item.getItemId()==1) showLibrary();
+            else if(item.getItemId()==2) showFavorites();
             else showSettings();
             return true;
         });
         nav.setSelectedItemId(1);
-        root.addView(nav, new LinearLayout.LayoutParams(-1, -2));
+        root.addView(nav,new LinearLayout.LayoutParams(-1,-2));
         setContentView(root);
     }
 
-    private void header(String title,String subtitle) {
-        page.removeAllViews();
-        LinearLayout h=new LinearLayout(this);
-        h.setOrientation(LinearLayout.VERTICAL);
-        h.setPadding(dp(22),dp(24),dp(22),dp(12));
-        TextView t=text(title,32,TEXT); t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
-        h.addView(t,new LinearLayout.LayoutParams(-1,dp(42)));
-        if(subtitle!=null){TextView s=text(subtitle,14,MUTED);h.addView(s,new LinearLayout.LayoutParams(-1,dp(26)));}
-        page.addView(h);
-        content=new LinearLayout(this); content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(dp(16),0,dp(16),dp(18));
-        ScrollView scroll=new ScrollView(this);
-        scroll.setFillViewport(true);
-        scroll.addView(content);
-        page.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+    private void resetContent() {
+        content.removeAllViews();
+        content.setPadding(dp(16),dp(4),dp(16),dp(20));
     }
 
-    private TextView pill(String value) {
-        TextView v=text(value,11,CYAN);
-        v.setGravity(Gravity.CENTER);
-        v.setPadding(dp(10),0,dp(10),0);
-        v.setBackground(bg(Color.rgb(8,54,78),dp(30)));
-        return v;
+    private TextView section(String title) {
+        TextView t=text(title,12,PRIMARY);
+        t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        t.setPadding(dp(4),dp(20),dp(4),dp(8));
+        content.addView(t,new LinearLayout.LayoutParams(-1,dp(42)));
+        return t;
     }
 
-    private LinearLayout card() {
-        LinearLayout c=new LinearLayout(this);
-        c.setOrientation(LinearLayout.VERTICAL);
-        c.setPadding(dp(16),dp(14),dp(16),dp(14));
-        c.setBackground(bg(PANEL,dp(18)));
-        return c;
+    private void addGap(int h) {
+        Space s=new Space(this);
+        content.addView(s,new LinearLayout.LayoutParams(1,dp(h)));
     }
-
-    private void addSpace(int h){Space s=new Space(this);content.addView(s,new LinearLayout.LayoutParams(1,dp(h)));}
 
     private void showLibrary() {
-        header("Library","Your Wii U games");
-        LinearLayout top=lpRow();
-        TextView count=pill(games.size()+" GAMES");
-        top.addView(count,new LinearLayout.LayoutParams(dp(95),dp(30)));
-        Space sp=new Space(this);top.addView(sp,new LinearLayout.LayoutParams(0,1,1));
-        Button add=new Button(this);add.setText("+");add.setTextSize(24);add.setTextColor(TEXT);add.setAllCaps(false);
-        add.setBackground(gradient(dp(16)));add.setOnClickListener(v->openPicker());
-        top.addView(add,new LinearLayout.LayoutParams(dp(54),dp(48)));
-        content.addView(top);
-        addSpace(14);
+        resetContent();
 
-        if(games.isEmpty()){
-            LinearLayout empty=card();empty.setGravity(Gravity.CENTER);
-            TextView ico=text("▦",52,CYAN);ico.setGravity(Gravity.CENTER);
-            empty.addView(ico,new LinearLayout.LayoutParams(-1,dp(70)));
-            TextView title=text("No Games",22,TEXT);title.setGravity(Gravity.CENTER);
-            empty.addView(title);
-            TextView sub=text("Import a Wii U game or homebrew executable to get started.",14,MUTED);sub.setGravity(Gravity.CENTER);sub.setPadding(dp(25),dp(8),dp(25),dp(20));
-            empty.addView(sub);
-            Button imp=primaryButton("IMPORT GAME");imp.setOnClickListener(v->openPicker());empty.addView(imp,new LinearLayout.LayoutParams(-1,dp(48)));
+        LinearLayout titleRow=new LinearLayout(this);
+        titleRow.setGravity(Gravity.CENTER_VERTICAL);
+        TextView title=text("Library",30,TEXT);
+        title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        titleRow.addView(title,new LinearLayout.LayoutParams(0,dp(48),1));
+        TextView count=text(games.size()+" games",13,MUTED);
+        count.setGravity(Gravity.CENTER);
+        titleRow.addView(count,new LinearLayout.LayoutParams(dp(82),dp(36)));
+        content.addView(titleRow);
+
+        TextView hint=text("Import Wii U software and launch it from here.",14,MUTED);
+        content.addView(hint,new LinearLayout.LayoutParams(-1,dp(30)));
+
+        if(games.isEmpty()) {
+            addGap(18);
+            MaterialCardView empty=card();
+            LinearLayout box=new LinearLayout(this);
+            box.setOrientation(LinearLayout.VERTICAL);
+            box.setGravity(Gravity.CENTER_HORIZONTAL);
+            box.setPadding(dp(24),dp(30),dp(24),dp(26));
+            ImageView icon=new ImageView(this);
+            icon.setImageResource(net.teamceleste.wiiulator.R.drawable.ic_library);
+            icon.setBackgroundTintList(ColorStateList.valueOf(PRIMARY));
+            box.addView(icon,new LinearLayout.LayoutParams(dp(48),dp(48)));
+            TextView t=text("Your library is empty",21,TEXT);
+            t.setGravity(Gravity.CENTER);
+            t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+            box.addView(t,new LinearLayout.LayoutParams(-1,dp(40)));
+            TextView s=text("Choose a Wii U game or executable to add it to WiiUlator.",14,MUTED);
+            s.setGravity(Gravity.CENTER);
+            box.addView(s,new LinearLayout.LayoutParams(-1,dp(55)));
+            MaterialButton imp=button("Import game",net.teamceleste.wiiulator.R.drawable.ic_add);
+            imp.setOnClickListener(v->openPicker());
+            LinearLayout.LayoutParams ip=new LinearLayout.LayoutParams(-1,dp(52));
+            ip.topMargin=dp(8);
+            box.addView(imp,ip);
+            empty.addView(box);
             content.addView(empty,new LinearLayout.LayoutParams(-1,-2));
             return;
         }
 
-        for(Game g:games)addGameCard(g);
+        addGap(12);
+        for(Game g:games) addGameCard(g);
     }
 
-    private Button primaryButton(String label){
-        com.google.android.material.button.MaterialButton b=new com.google.android.material.button.MaterialButton(this);
-        b.setText(label);b.setTextSize(12);b.setTextColor(Color.WHITE);b.setAllCaps(false);
-        b.setTypeface(Typeface.DEFAULT,Typeface.BOLD);b.setBackground(gradient(dp(14)));return b;
-    }
+    private void addGameCard(Game g) {
+        MaterialCardView c=card();
+        LinearLayout outer=new LinearLayout(this);
+        outer.setOrientation(LinearLayout.VERTICAL);
+        outer.setPadding(dp(16),dp(16),dp(16),dp(14));
 
-    private void addGameCard(Game g){
-        LinearLayout c=card();
-        LinearLayout row=lpRow();
-        TextView icon=text("Wii U",13,Color.WHITE);icon.setGravity(Gravity.CENTER);icon.setTypeface(Typeface.DEFAULT,Typeface.BOLD);icon.setBackground(gradient(dp(14)));
-        row.addView(icon,new LinearLayout.LayoutParams(dp(72),dp(72)));
-        LinearLayout info=new LinearLayout(this);info.setOrientation(LinearLayout.VERTICAL);info.setPadding(dp(14),0,dp(8),0);
-        TextView n=text(g.name,18,TEXT);n.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        LinearLayout row=new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        TextView badge=text("WII U",12,Color.WHITE);
+        badge.setGravity(Gravity.CENTER);
+        badge.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        badge.setBackgroundColor(PRIMARY);
+        row.addView(badge,new LinearLayout.LayoutParams(dp(58),dp(58)));
+
+        LinearLayout info=new LinearLayout(this);
+        info.setOrientation(LinearLayout.VERTICAL);
+        info.setPadding(dp(14),0,dp(8),0);
+        TextView n=text(g.name,18,TEXT);
+        n.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
         TextView p=text(g.provider,13,MUTED);
-        TextView v=text(g.version.isEmpty()?"Ready":g.version,12,CYAN);
-        info.addView(n,new LinearLayout.LayoutParams(-1,dp(28)));info.addView(p,new LinearLayout.LayoutParams(-1,dp(22)));info.addView(v,new LinearLayout.LayoutParams(-1,dp(20)));
+        TextView v=text(g.version.isEmpty()?"Ready":g.version,12,PRIMARY);
+        info.addView(n,new LinearLayout.LayoutParams(-1,dp(28)));
+        info.addView(p,new LinearLayout.LayoutParams(-1,dp(22)));
+        info.addView(v,new LinearLayout.LayoutParams(-1,dp(20)));
         row.addView(info,new LinearLayout.LayoutParams(0,-2,1));
-        Button star=new Button(this);star.setText(favorites.contains(g.name)?"★":"☆");star.setTextSize(24);star.setTextColor(favorites.contains(g.name)?Color.rgb(255,205,65):MUTED);star.setAllCaps(false);star.setBackgroundColor(Color.TRANSPARENT);
-        star.setOnClickListener(view->{if(favorites.contains(g.name))favorites.remove(g.name);else favorites.add(g.name);showLibrary();});
-        row.addView(star,new LinearLayout.LayoutParams(dp(50),dp(58)));
-        c.addView(row);
-        Button play=primaryButton("OPEN GAME");play.setOnClickListener(view->{Intent i=new Intent(this,EmulatorActivity.class);startActivity(i);});
-        LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-1,dp(42));pp.topMargin=dp(12);c.addView(play,pp);
-        LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);cp.bottomMargin=dp(12);content.addView(c,cp);
+
+        ImageButton star=new ImageButton(this);
+        star.setImageResource(net.teamceleste.wiiulator.R.drawable.ic_star);
+        star.setColorFilter(favorites.contains(g.name)?PRIMARY:MUTED);
+        star.setBackgroundColor(Color.TRANSPARENT);
+        star.setContentDescription("Favorite");
+        star.setOnClickListener(v->{if(favorites.contains(g.name))favorites.remove(g.name);else favorites.add(g.name);showLibrary();});
+        row.addView(star,new LinearLayout.LayoutParams(dp(48),dp(48)));
+        outer.addView(row);
+
+        MaterialButton play=button("Open game",net.teamceleste.wiiulator.R.drawable.ic_play);
+        play.setOnClickListener(v->startActivity(new Intent(this,EmulatorActivity.class)));
+        LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-1,dp(48));
+        pp.topMargin=dp(14);
+        outer.addView(play,pp);
+        c.addView(outer);
+
+        LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);
+        cp.bottomMargin=dp(12);
+        content.addView(c,cp);
     }
 
-    private void showFavorites(){
-        header("Favorites","Your starred games");
-        if(favorites.isEmpty()){
-            LinearLayout empty=card();empty.setGravity(Gravity.CENTER);
-            TextView i=text("★",48,MUTED);i.setGravity(Gravity.CENTER);empty.addView(i,new LinearLayout.LayoutParams(-1,dp(65)));
-            TextView t=text("No Favorites",20,TEXT);t.setGravity(Gravity.CENTER);empty.addView(t);
-            TextView s=text("Star games from your Library to keep them here.",14,MUTED);s.setGravity(Gravity.CENTER);s.setPadding(dp(20),dp(8),dp(20),dp(15));empty.addView(s);
-            content.addView(empty);
-            return;
+    private void showFavorites() {
+        resetContent();
+        TextView title=text("Favorites",30,TEXT);
+        title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        content.addView(title,new LinearLayout.LayoutParams(-1,dp(48)));
+        TextView sub=text("Games you marked for quick access.",14,MUTED);
+        content.addView(sub,new LinearLayout.LayoutParams(-1,dp(30)));
+        addGap(12);
+
+        boolean any=false;
+        for(Game g:games) if(favorites.contains(g.name)){ addGameCard(g); any=true; }
+        if(!any) {
+            MaterialCardView c=card();
+            TextView t=text("No favorites yet",20,TEXT);
+            t.setGravity(Gravity.CENTER);
+            t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+            c.addView(t,new LinearLayout.LayoutParams(-1,dp(100)));
+            content.addView(c);
         }
-        for(Game g:games)if(favorites.contains(g.name))addGameCard(g);
     }
 
-    private void showSettings(){
-        header("Settings","Tune WiiUlator to your device");
-        settingGroup("LANGUAGE");
-        settingRow("Language","System Language","▤",v->showLanguage());
-        settingGroup("EMULATION");
-        settingRow("Graphics","Vulkan · Auto · 16:9","▣",v->showGraphics());
-        settingRow("Controls","Wii U GamePad · Rumble","◉",v->showControls());
-        settingRow("Audio","Enabled · 100%","♫",v->showAudio());
-        settingRow("System","Memory · JIT · Performance","⚙",v->showSystem());
-        settingRow("System Update","Nintendo Wii U NUS","↓",v->showUpdate());
-        settingGroup("DEVELOPER");
-        settingRow("Debugging","Overlay · Logging","◇",v->showDebug());
-        settingGroup("STORAGE");
-        settingRow("Games Folder","Documents / games","□",v->showStorage());
-        settingGroup("ABOUT");
-        settingRow("About","WiiUlator 1.0 · 26W002","i",v->showAbout());
+    private void showSettings() {
+        resetContent();
+        TextView title=text("Settings",30,TEXT);
+        title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        content.addView(title,new LinearLayout.LayoutParams(-1,dp(48)));
+        TextView sub=text("Configure emulation, controls, graphics and storage.",14,MUTED);
+        content.addView(sub,new LinearLayout.LayoutParams(-1,dp(30)));
+
+        section("EMULATION");
+        setting("Graphics","Vulkan · Auto · 16:9",net.teamceleste.wiiulator.R.drawable.ic_library,v->showGraphics());
+        setting("Controls","Wii U GamePad · Rumble",net.teamceleste.wiiulator.R.drawable.ic_gamepad,v->showControls());
+        setting("Audio","Enabled · 100%",net.teamceleste.wiiulator.R.drawable.ic_settings,v->showAudio());
+        setting("System","Memory · Performance",net.teamceleste.wiiulator.R.drawable.ic_settings,v->showSystem());
+
+        section("SYSTEM");
+        setting("Wii U System Update","Region and NUS metadata",net.teamceleste.wiiulator.R.drawable.ic_settings,v->showUpdate());
+        setting("Games Folder","Documents / games",net.teamceleste.wiiulator.R.drawable.ic_library,v->showStorage());
+
+        section("DEVELOPER");
+        setting("Debugging","Overlay and logging",net.teamceleste.wiiulator.R.drawable.ic_settings,v->showDebug());
+
+        section("ABOUT");
+        setting("About WiiUlator","Version 1.0 · Android",net.teamceleste.wiiulator.R.drawable.ic_star,v->showAbout());
     }
 
-    private void settingGroup(String title){
-        TextView g=text(title,11,CYAN);g.setTypeface(Typeface.DEFAULT,Typeface.BOLD);g.setPadding(dp(8),dp(16),dp(8),dp(7));content.addView(g,new LinearLayout.LayoutParams(-1,dp(36)));
+    private void setting(String title,String sub,int icon,View.OnClickListener click) {
+        MaterialCardView c=card();
+        LinearLayout r=new LinearLayout(this);
+        r.setGravity(Gravity.CENTER_VERTICAL);
+        r.setPadding(dp(12),dp(8),dp(8),dp(8));
+        ImageView i=new ImageView(this);
+        i.setImageResource(icon);
+        i.setColorFilter(PRIMARY);
+        r.addView(i,new LinearLayout.LayoutParams(dp(44),dp(44)));
+        LinearLayout info=new LinearLayout(this);
+        info.setOrientation(LinearLayout.VERTICAL);
+        info.setPadding(dp(8),0,dp(8),0);
+        TextView a=text(title,16,TEXT); a.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        TextView b=text(sub,13,MUTED);
+        info.addView(a,new LinearLayout.LayoutParams(-1,dp(25)));
+        info.addView(b,new LinearLayout.LayoutParams(-1,dp(22)));
+        r.addView(info,new LinearLayout.LayoutParams(0,dp(54),1));
+        TextView arrow=text("›",28,MUTED);arrow.setGravity(Gravity.CENTER);
+        r.addView(arrow,new LinearLayout.LayoutParams(dp(28),dp(54)));
+        c.addView(r);
+        c.setOnClickListener(click);
+        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(70));
+        p.bottomMargin=dp(8);
+        content.addView(c,p);
     }
 
-    private void settingRow(String title,String sub,String glyph,View.OnClickListener click){
-        LinearLayout r=lpRow();r.setPadding(dp(14),dp(8),dp(10),dp(8));r.setBackground(bg(PANEL,dp(16)));
-        TextView ic=text(glyph,20,CYAN);ic.setGravity(Gravity.CENTER);
-        r.addView(ic,new LinearLayout.LayoutParams(dp(42),dp(46)));
-        LinearLayout info=new LinearLayout(this);info.setOrientation(LinearLayout.VERTICAL);
-        TextView t=text(title,16,TEXT);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
-        TextView s=text(sub,12,MUTED);info.addView(t,new LinearLayout.LayoutParams(-1,dp(25)));info.addView(s,new LinearLayout.LayoutParams(-1,dp(20)));
-        r.addView(info,new LinearLayout.LayoutParams(0,dp(50),1));
-        TextView arrow=text("›",28,MUTED);arrow.setGravity(Gravity.CENTER);r.addView(arrow,new LinearLayout.LayoutParams(dp(28),dp(50)));
-        r.setOnClickListener(click);
-        LinearLayout.LayoutParams rp=new LinearLayout.LayoutParams(-1,dp(66));rp.bottomMargin=dp(7);content.addView(r,rp);
+    private void subHeader(String title) {
+        resetContent();
+        LinearLayout row=new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        TextView back=text("‹",38,TEXT);back.setGravity(Gravity.CENTER);
+        back.setOnClickListener(v->showSettings());
+        row.addView(back,new LinearLayout.LayoutParams(dp(48),dp(48)));
+        TextView t=text(title,25,TEXT);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        row.addView(t,new LinearLayout.LayoutParams(0,dp(48),1));
+        content.addView(row);
     }
 
-    private void subHeader(String title){
-        page.removeAllViews();
-        LinearLayout bar=lpRow();bar.setPadding(dp(14),dp(15),dp(18),dp(10));
-        Button back=new Button(this);back.setText("‹");back.setTextSize(30);back.setTextColor(TEXT);back.setAllCaps(false);back.setBackgroundColor(Color.TRANSPARENT);back.setOnClickListener(v->showSettings());
-        bar.addView(back,new LinearLayout.LayoutParams(dp(48),dp(48)));
-        TextView t=text(title,25,TEXT);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);bar.addView(t,new LinearLayout.LayoutParams(0,dp(48),1));
-        page.addView(bar);
-        content=new LinearLayout(this);content.setOrientation(LinearLayout.VERTICAL);content.setPadding(dp(16),0,dp(16),dp(24));
-        ScrollView scroll=new ScrollView(this);scroll.addView(content);page.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+    private void rowLabel(String title,String value) {
+        MaterialCardView c=card();
+        LinearLayout r=new LinearLayout(this);r.setGravity(Gravity.CENTER_VERTICAL);r.setPadding(dp(16),0,dp(16),0);
+        TextView a=text(title,15,TEXT);
+        TextView b=text(value,14,MUTED);b.setGravity(Gravity.RIGHT);
+        r.addView(a,new LinearLayout.LayoutParams(0,dp(56),1));
+        r.addView(b,new LinearLayout.LayoutParams(dp(150),dp(56)));
+        c.addView(r);
+        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(58));p.bottomMargin=dp(7);content.addView(c,p);
     }
 
-    private TextView sectionTitle(String s){TextView t=text(s,12,CYAN);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);t.setPadding(dp(4),dp(17),dp(4),dp(8));content.addView(t);return t;}
-
-    private void rowLabel(String title,String value){
-        LinearLayout r=lpRow();r.setPadding(dp(14),dp(11),dp(14),dp(11));r.setBackground(bg(PANEL,dp(14)));
-        TextView a=text(title,15,TEXT);TextView b=text(value,14,MUTED);b.setGravity(Gravity.RIGHT);
-        r.addView(a,new LinearLayout.LayoutParams(0,dp(42),1));r.addView(b,new LinearLayout.LayoutParams(dp(135),dp(42)));
-        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(64));p.bottomMargin=dp(6);content.addView(r,p);
+    private void addSwitch(String title,boolean def,String key) {
+        MaterialCardView c=card();
+        LinearLayout r=new LinearLayout(this);r.setGravity(Gravity.CENTER_VERTICAL);r.setPadding(dp(16),0,dp(8),0);
+        TextView t=text(title,15,TEXT);
+        MaterialSwitch sw=new MaterialSwitch(this);
+        sw.setChecked(prefs.getBoolean(key,def));
+        sw.setOnCheckedChangeListener((b,v)->prefs.edit().putBoolean(key,v).apply());
+        r.addView(t,new LinearLayout.LayoutParams(0,dp(58),1));
+        r.addView(sw,new LinearLayout.LayoutParams(dp(64),dp(58)));
+        c.addView(r);
+        content.addView(c,new LinearLayout.LayoutParams(-1,dp(64)));
     }
 
-    private void addSwitch(String title,boolean value,String key){
-        LinearLayout r=lpRow();r.setPadding(dp(14),dp(7),dp(8),dp(7));r.setBackground(bg(PANEL,dp(14)));
-        TextView t=text(title,15,TEXT);Switch sw=new Switch(this);sw.setChecked(prefs.getBoolean(key,value));sw.setOnCheckedChangeListener((b,c)->prefs.edit().putBoolean(key,c).apply());
-        r.addView(t,new LinearLayout.LayoutParams(0,dp(50),1));r.addView(sw,new LinearLayout.LayoutParams(dp(60),dp(50)));
-        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(64));p.bottomMargin=dp(6);content.addView(r,p);
+    private void addSpinner(String title,String[] values,String key,String def) {
+        MaterialCardView c=card();
+        LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(dp(16),dp(10),dp(16),dp(8));
+        TextView t=text(title,13,MUTED);box.addView(t,new LinearLayout.LayoutParams(-1,dp(25)));
+        Spinner sp=new Spinner(this);
+        ArrayAdapter<String> ad=new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,values);
+        sp.setAdapter(ad);
+        int idx=Arrays.asList(values).indexOf(prefs.getString(key,def));
+        if(idx>=0)sp.setSelection(idx);
+        sp.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
+            public void onNothingSelected(android.widget.AdapterView<?> p){}
+            public void onItemSelected(android.widget.AdapterView<?> p,View v,int pos,long id){prefs.edit().putString(key,values[pos]).apply();}
+        });
+        box.addView(sp,new LinearLayout.LayoutParams(-1,dp(48)));
+        c.addView(box);
+        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.bottomMargin=dp(8);content.addView(c,p);
     }
 
-    private void addSpinner(String title,String[] values,String key,String def){
-        LinearLayout box=card();TextView t=text(title,14,TEXT);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);box.addView(t);
-        Spinner sp=new Spinner(this);ArrayAdapter<String> ad=new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item,values);
-        sp.setAdapter(ad);String saved=prefs.getString(key,def);int idx=Arrays.asList(values).indexOf(saved);if(idx>=0)sp.setSelection(idx);
-        sp.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){public void onNothingSelected(android.widget.AdapterView<?> p){}public void onItemSelected(android.widget.AdapterView<?> p,View v,int pos,long id){prefs.edit().putString(key,values[pos]).apply();}});
-        box.addView(sp,new LinearLayout.LayoutParams(-1,dp(50)));
-        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.bottomMargin=dp(8);content.addView(box,p);
-    }
-
-    private void showLanguage(){subHeader("Language");sectionTitle("LANGUAGE");addSpinner("Language",new String[]{"System Language","Spanish","Portuguese","Japanese","Chinese","English (UK)"},"language","System Language");}
-
-    private void showGraphics(){
+    private void showGraphics() {
         subHeader("Graphics");
-        sectionTitle("GRAPHICS BACKEND");addSpinner("Backend",new String[]{"Vulkan","OpenGL ES (Compatibility)"},"graphicsBackend","Vulkan");
-        sectionTitle("DISPLAY");addSpinner("Aspect Ratio",new String[]{"16:9","4:3"},"displayAspectRatio","16:9");
-        sectionTitle("GAME RESOLUTION");addSpinner("Resolution",new String[]{"Native","1280 × 720","1600 × 900","1920 × 1080","2560 × 1440"},"gameResolution","Native");
-        sectionTitle("RENDERING");addSpinner("Quality",new String[]{"Auto","Low","Medium","High"},"graphicsQuality","Auto");
-        addSwitch("Performance Mode",false,"performanceMode");
-        addSwitch("30 FPS = Full Emulation Speed",true,"thirtyFPSFullSpeed");
-        TextView note=text("Vulkan is the primary Android graphics backend.",12,MUTED);note.setPadding(dp(8),dp(10),dp(8),dp(10));content.addView(note);
+        section("RENDERER");
+        addSpinner("Graphics backend",new String[]{"Vulkan","OpenGL ES (Compatibility)"},"graphicsBackend","Vulkan");
+        addSpinner("Quality",new String[]{"Auto","Low","Medium","High"},"graphicsQuality","Auto");
+        section("DISPLAY");
+        addSpinner("Aspect ratio",new String[]{"16:9","4:3"},"displayAspectRatio","16:9");
+        addSpinner("Resolution",new String[]{"Native","1280 × 720","1600 × 900","1920 × 1080","2560 × 1440"},"gameResolution","Native");
+        addSwitch("Performance mode",false,"performanceMode");
     }
 
-    private void showControls(){
-        subHeader("Controls");sectionTitle("CONTROLLER");
+    private void showControls() {
+        subHeader("Controls");
+        section("CONTROLLER");
         addSpinner("Controller",new String[]{"Wii U GamePad","Pro Controller","Touch Controls"},"controllerType","Wii U GamePad");
         addSwitch("Rumble",true,"rumbleEnabled");
-        sectionTitle("LAYOUT");
-        Button b=primaryButton("CONFIGURE CONTROLS");b.setOnClickListener(v->showControlLayout());content.addView(b,new LinearLayout.LayoutParams(-1,dp(48)));
+        section("BUTTON MAPPING");
+        MaterialButton b=button("Configure controls",net.teamceleste.wiiulator.R.drawable.ic_gamepad);
+        b.setOnClickListener(v->showControlLayout());
+        content.addView(b,new LinearLayout.LayoutParams(-1,dp(50)));
     }
 
-    private void showControlLayout(){
-        subHeader("Configure Controls");sectionTitle("BUTTONS");
+    private void showControlLayout() {
+        subHeader("Configure controls");
+        section("MAPPING");
         rowLabel("A","A");rowLabel("B","B");rowLabel("X","X");rowLabel("Y","Y");rowLabel("D-Pad","D-Pad");
-        TextView n=text("Custom button mapping will be available as the emulator input system is implemented.",12,MUTED);n.setPadding(dp(8),dp(12),dp(8),dp(12));content.addView(n);
     }
 
-    private void showAudio(){
-        subHeader("Audio");sectionTitle("GAME AUDIO");addSwitch("Enable Audio",true,"audioEnabled");
-        LinearLayout box=card();TextView t=text("Volume",15,TEXT);box.addView(t);
-        SeekBar s=new SeekBar(this);s.setMax(100);s.setProgress((int)(prefs.getFloat("audioVolume",1f)*100));s.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){public void onProgressChanged(SeekBar b,int p,boolean f){prefs.edit().putFloat("audioVolume",p/100f).apply();}public void onStartTrackingTouch(SeekBar b){}public void onStopTrackingTouch(SeekBar b){}});
-        box.addView(s,new LinearLayout.LayoutParams(-1,dp(45)));content.addView(box,new LinearLayout.LayoutParams(-1,-2));
-        TextView n=text("Audio settings apply to emulated games. WiiUlator does not use interface sound effects.",12,MUTED);n.setPadding(dp(8),dp(12),dp(8),dp(12));content.addView(n);
+    private void showAudio() {
+        subHeader("Audio");
+        section("GAME AUDIO");
+        addSwitch("Enable audio",true,"audioEnabled");
+        rowLabel("Volume",Math.round(prefs.getFloat("audioVolume",1f)*100)+"%");
+        MaterialButton mute=button("Set volume to 100%",net.teamceleste.wiiulator.R.drawable.ic_settings);
+        mute.setOnClickListener(v->{prefs.edit().putFloat("audioVolume",1f).apply();showAudio();});
+        content.addView(mute,new LinearLayout.LayoutParams(-1,dp(50)));
     }
 
-    private void showSystem(){
-        subHeader("System");sectionTitle("SYSTEM");addSwitch("Auto Save",true,"autoSave");addSwitch("Confirm Before Exit",true,"confirmExit");
-        sectionTitle("MEMORY");int ram=prefs.getInt("maximumRAMMB",512);rowLabel("Maximum RAM",ram+" MB");rowLabel("Recommended","512 MB");
-        TextView jit=text("JIT     "+(Build.VERSION.SDK_INT>=24?"Available":"Unavailable"),15,TEXT);jit.setPadding(dp(14),dp(15),dp(14),dp(15));jit.setBackground(bg(PANEL,dp(14)));content.addView(jit);
-        sectionTitle("PERFORMANCE");rowLabel("Architecture","ARM64");rowLabel("Graphics","Vulkan");rowLabel("Minimum Android","Android 8.0");
+    private void showSystem() {
+        subHeader("System");
+        section("GENERAL");
+        addSwitch("Auto save",true,"autoSave");
+        addSwitch("Confirm before exit",true,"confirmExit");
+        section("MEMORY");
+        rowLabel("Maximum RAM","512 MB");
+        rowLabel("Architecture","ARM64");
+        section("PERFORMANCE");
+        rowLabel("Graphics","Vulkan");
+        rowLabel("Minimum Android","Android 8.0");
+        rowLabel("JIT","Available");
     }
 
-    private void showUpdate(){
-        subHeader("System Update");sectionTitle("WII U REGION");addSpinner("Region",new String[]{"USA","EUR","JPN"},"updateRegion","USA");
-        sectionTitle("NINTENDO UPDATE SERVICE");Button check=primaryButton("CHECK FOR UPDATES");check.setOnClickListener(v->Toast.makeText(this,"Update metadata check will use the Wii U NUS service.",Toast.LENGTH_LONG).show());content.addView(check,new LinearLayout.LayoutParams(-1,dp(48)));
-        rowLabel("Source","Nintendo Wii U NUS");rowLabel("Build","26W002");sectionTitle("STATUS");rowLabel("Result","Not checked");
-        TextView n=text("Proprietary system software is not bundled with WiiUlator.",12,MUTED);n.setPadding(dp(8),dp(12),dp(8),dp(12));content.addView(n);
+    private void showUpdate() {
+        subHeader("Wii U System Update");
+        section("REGION");
+        addSpinner("Region",new String[]{"USA","EUR","JPN"},"updateRegion","USA");
+        section("NUS");
+        rowLabel("Source","Nintendo Wii U NUS");
+        rowLabel("Status","Not checked");
+        MaterialButton b=button("Check for updates",net.teamceleste.wiiulator.R.drawable.ic_settings);
+        b.setOnClickListener(v->Toast.makeText(this,"Update metadata check will use the Wii U NUS service.",Toast.LENGTH_LONG).show());
+        content.addView(b,new LinearLayout.LayoutParams(-1,dp(50)));
     }
 
-    private void showDebug(){
-        subHeader("Debugging");sectionTitle("DEVELOPER TOOLS");addSwitch("Performance Overlay",false,"debugOverlayEnabled");addSwitch("Debug Logging",false,"debugLoggingEnabled");
-        sectionTitle("OVERLAY");rowLabel("Display FPS","Live");rowLabel("Emulation Speed","100%");rowLabel("Frame Time","Live");rowLabel("Renderer","Vulkan");rowLabel("CPU","ARM64");rowLabel("JIT Support","Available");
+    private void showDebug() {
+        subHeader("Debugging");
+        section("TOOLS");
+        addSwitch("Performance overlay",false,"debugOverlayEnabled");
+        addSwitch("Debug logging",false,"debugLoggingEnabled");
+        section("RUNTIME");
+        rowLabel("Renderer","Vulkan");
+        rowLabel("CPU","ARM64");
+        rowLabel("Emulation speed","100%");
     }
 
-    private void showStorage(){
-        subHeader("Games Folder");sectionTitle("LOCATION");rowLabel("Folder","games");rowLabel("Path","Documents/games");
-        TextView n=text("Imported games are stored in WiiUlator's app storage. Game files are not included with WiiUlator.",12,MUTED);n.setPadding(dp(8),dp(12),dp(8),dp(12));content.addView(n);
+    private void showStorage() {
+        subHeader("Games Folder");
+        section("STORAGE");
+        rowLabel("Folder","games");
+        rowLabel("Path","Documents/games");
+        TextView n=text("Imported games stay inside WiiUlator's app storage. Game files are not bundled.",13,MUTED);
+        n.setPadding(dp(8),dp(12),dp(8),dp(12));
+        content.addView(n);
     }
 
-    private void showAbout(){
-        subHeader("About");sectionTitle("WIIULATOR");rowLabel("Version","1.0");rowLabel("Build Identifier","26W002");rowLabel("Platform","Android");
-        LinearLayout brand=card();brand.setGravity(Gravity.CENTER);TextView icon=text("Wii U",18,Color.WHITE);icon.setGravity(Gravity.CENTER);icon.setTypeface(Typeface.DEFAULT,Typeface.BOLD);icon.setBackground(gradient(dp(18)));brand.addView(icon,new LinearLayout.LayoutParams(dp(100),dp(60)));
-        TextView name=text("WiiUlator",25,TEXT);name.setGravity(Gravity.CENTER);name.setTypeface(Typeface.DEFAULT,Typeface.BOLD);brand.addView(name,new LinearLayout.LayoutParams(-1,dp(42)));
-        TextView made=text("Made with ♥ by Team Celeste",13,MUTED);made.setGravity(Gravity.CENTER);brand.addView(made,new LinearLayout.LayoutParams(-1,dp(30)));
-        content.addView(brand);
-        sectionTitle("OPEN SOURCE");TextView n=text("WiiUlator is open source and developed by Team Celeste.",13,MUTED);n.setPadding(dp(8),dp(8),dp(8),dp(8));content.addView(n);
+    private void showAbout() {
+        subHeader("About WiiUlator");
+        section("APP");
+        rowLabel("Version","1.0");
+        rowLabel("Build","26W002");
+        rowLabel("Platform","Android");
+        MaterialCardView c=card();
+        LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setGravity(Gravity.CENTER);box.setPadding(dp(20),dp(24),dp(20),dp(24));
+        TextView n=text("WiiUlator",25,TEXT);n.setGravity(Gravity.CENTER);n.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        TextView s=text("Made by Team Celeste",14,MUTED);s.setGravity(Gravity.CENTER);
+        box.addView(n,new LinearLayout.LayoutParams(-1,dp(42)));box.addView(s,new LinearLayout.LayoutParams(-1,dp(30)));
+        c.addView(box);content.addView(c);
     }
 
-    private void openPicker(){
+    private void openPicker() {
         Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        i.setType("*/*");i.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"application/zip","application/octet-stream"});
-        i.addCategory(Intent.CATEGORY_OPENABLE);startActivityForResult(i,PICK);
+        i.setType("*/*");
+        i.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"application/zip","application/octet-stream"});
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(i,PICK);
     }
 
-    @Override protected void onActivityResult(int r,int c,Intent d){
-        super.onActivityResult(r,c,d);if(r!=PICK||c!=RESULT_OK||d==null)return;
+    @Override protected void onActivityResult(int r,int c,Intent d) {
+        super.onActivityResult(r,c,d);
+        if(r!=PICK||c!=RESULT_OK||d==null)return;
         Uri uri=d.getData();if(uri==null)return;
-        try(InputStream in=getContentResolver().openInputStream(uri)){
-            byte[] data=readAll(in);new EmulatorCore().loadElf(data);
-            String name=uri.getLastPathSegment();if(name==null)name="Imported Wii U Game";
-            games.add(new Game(name,"Local","Ready"));showLibrary();
-        }catch(Exception e){Toast.makeText(this,"Load failed: "+e.getMessage(),Toast.LENGTH_LONG).show();}
+        try(InputStream in=getContentResolver().openInputStream(uri)) {
+            byte[] data=readAll(in);
+            new EmulatorCore().loadElf(data);
+            String name=uri.getLastPathSegment();
+            if(name==null)name="Imported Wii U Game";
+            games.add(new Game(name,"Local","Ready"));
+            showLibrary();
+        } catch(Exception e) {
+            Toast.makeText(this,"Load failed: "+e.getMessage(),Toast.LENGTH_LONG).show();
+        }
     }
 
-    static byte[] readAll(InputStream in)throws IOException{
-        ByteArrayOutputStream b=new ByteArrayOutputStream();byte[] x=new byte[65536];int n;
-        while((n=in.read(x))>0)b.write(x,0,n);return b.toByteArray();
+    static byte[] readAll(InputStream in)throws IOException {
+        ByteArrayOutputStream b=new ByteArrayOutputStream();
+        byte[] x=new byte[65536];int n;
+        while((n=in.read(x))>0)b.write(x,0,n);
+        return b.toByteArray();
     }
 }
