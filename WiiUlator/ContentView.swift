@@ -142,7 +142,7 @@ struct GameIconView: View {
 
     private var iconURL: URL? {
         guard let titleID = game.titleID, !titleID.isEmpty else { return nil }
-        return URL(string: "https://art.gametdb.com/wiiu/icon/US/\\(titleID).png")
+        return URL(string: "https://art.gametdb.com/wiiu/icon/US/\(titleID).png")
     }
 
     var body: some View {
@@ -384,8 +384,8 @@ struct EmulatorDebugOverlay: View {
             Text("WiiUlator DEBUG")
                 .font(.system(size: 11, weight: .bold, design: .monospaced))
             Text(String(format: "PC          %08X", session.programCounter))
-            Text("State       \\(session.state.label)")
-            Text("Instructions \\(session.instructionCount)")
+            Text("State       \(session.state.label)")
+            Text("Instructions \(session.instructionCount)")
             Text("CPU         PowerPC")
             Text("Renderer    Metal / pending")
         }
