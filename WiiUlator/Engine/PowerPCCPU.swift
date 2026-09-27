@@ -7,6 +7,7 @@ final class PowerPCCPU {
     var linkRegister: UInt32 = 0
     var countRegister: UInt32 = 0
     var xer: UInt32 = 0
+    var floatingPointRegisters = [Double](repeating: 0, count: 32)
     private(set) var lastInstruction: UInt32 = 0
     private(set) var unsupportedInstruction: UInt32?
 
@@ -17,6 +18,7 @@ final class PowerPCCPU {
         linkRegister = 0
         countRegister = 0
         xer = 0
+        floatingPointRegisters = [Double](repeating: 0, count: 32)
         lastInstruction = 0
         unsupportedInstruction = nil
     }
@@ -217,12 +219,118 @@ final class PowerPCCPU {
                 address &+= 4
             }
 
+        case 48: // lfs
+            let frD = Int((instruction >> 21) & 0x1f)
+            let ra = Int((instruction >> 16) & 0x1f)
+            floatingPointRegisters[frD] = Double(Float(bitPattern: memory.read32(at: effectiveAddress(ra, instruction))))
+
+        case 49: // lfsu
+            let frD = Int((instruction >> 21) & 0x1f)
+            let ra = Int((instruction >> 16) & 0x1f)
+            let address = effectiveAddress(ra, instruction)
+            generalPurposeRegisters[ra] = address
+            floatingPointRegisters[frD] = Double(Float(bitPattern: memory.read32(at: address)))
+
+        case 50: // lfd
+            let frD = Int((instruction >> 21) & 0x1f)
+            let ra = Int((instruction >> 16) & 0x1f)
+            floatingPointRegisters[frD] = Double(bitPattern: memory.read64(at: effectiveAddress(ra, instruction)))
+
+        case 51: // lfdu
+            let frD = Int((instruction >> 21) & 0x1f)
+            let ra = Int((instruction >> 16) & 0x1f)
+            let address = effectiveAddress(ra, instruction)
+            generalPurposeRegisters[ra] = address
+            floatingPointRegisters[frD] = Double(bitPattern: memory.read64(at: address))
+
+        case 52: // stfs
+            let frS = Int((instruction >> 21) & 0x1f)
+            let ra = Int((instruction >> 16) & 0x1f)
+            memory.write32(at: effectiveAddress(ra, instruction), value: Float(floatingPointRegisters[frS]).bitPattern)
+
+        case 53: // stfsu
+            let frS = Int((instruction >> 21) & 0x1f)
+            let ra = Int((instruction >> 16) & 0x1f)
+            let address = effectiveAddress(ra, instruction)
+            generalPurposeRegisters[ra] = address
+            memory.write32(at: address, value: Float(floatingPointRegisters[frS]).bitPattern)
+
+        case 54: // stfd
+            let frS = Int((instruction >> 21) & 0x1f)
+            let ra = Int((instruction >> 16) & 0x1f)
+            memory.write64(at: effectiveAddress(ra, instruction), value: floatingPointRegisters[frS].bitPattern)
+
+        case 55: // stfdu
+            let frS = Int((instruction >> 21) & 0x1f)
+            let ra = Int((instruction >> 16) & 0x1f)
+            let address = effectiveAddress(ra, instruction)
+            generalPurposeRegisters[ra] = address
+            memory.write64(at: address, value: floatingPointRegisters[frS].bitPattern)
+
+        case 59:
+            executeOpcode59(instruction)
+
+        case 63:
+            executeOpcode63(instruction)
+
         case 31:
             executeOpcode31(instruction, memory: memory)
 
         case 19:
             executeOpcode19(instruction)
 
+        default:
+            unsupportedInstruction = instruction
+        }
+    }
+
+    private func executeOpcode59(_ instruction: UInt32) {
+        let frD = Int((instruction >> 21) & 0x1f)
+        let frA = Int((instruction >> 16) & 0x1f)
+        let frB = Int((instruction >> 11) & 0x1f)
+        let xo = (instruction >> 1) & 0x3ff
+        let a = Float(floatingPointRegisters[frA])
+        let b = Float(floatingPointRegisters[frB])
+
+        switch xo {
+        case 18: floatingPointRegisters[frD] = Double(a / b)
+        case 20: floatingPointRegisters[frD] = Double(a - b)
+        case 21: floatingPointRegisters[frD] = Double(a + b)
+        case 25: floatingPointRegisters[frD] = Double(a * b)
+        default: unsupportedInstruction = instruction
+        }
+    }
+
+    private func executeOpcode63(_ instruction: UInt32) {
+        let frD = Int((instruction >> 21) & 0x1f)
+        let frA = Int((instruction >> 16) & 0x1f)
+        let frB = Int((instruction >> 11) & 0x1f)
+        let frC = Int((instruction >> 6) & 0x1f)
+        let xo = (instruction >> 1) & 0x3ff
+
+        switch xo {
+        case 0, 32:
+            let field = Int((instruction >> 23) & 0x7)
+            let lhs = floatingPointRegisters[frA]
+            let rhs = floatingPointRegisters[frB]
+            let result: UInt32 = (lhs.isNaN || rhs.isNaN) ? 0x1 : (lhs < rhs ? 0x8 : (lhs > rhs ? 0x4 : 0x2))
+            updateCRField(field, result)
+        case 12:
+            floatingPointRegisters[frD] = Double(Float(floatingPointRegisters[frB]))
+        case 18:
+            floatingPointRegisters[frD] = floatingPointRegisters[frA] / floatingPointRegisters[frB]
+        case 20:
+            floatingPointRegisters[frD] = floatingPointRegisters[frA] - floatingPointRegisters[frB]
+        case 21:
+            floatingPointRegisters[frD] = floatingPointRegisters[frA] + floatingPointRegisters[frB]
+        case 25:
+            floatingPointRegisters[frD] = floatingPointRegisters[frA] * floatingPointRegisters[frC]
+        case 40:
+            floatingPointRegisters[frD] = -floatingPointRegisters[frB]
+        case 72:
+            floatingPointRegisters[frD] = floatingPointRegisters[frB]
+        case 264:
+            floatingPointRegisters[frD] = abs(floatingPointRegisters[frB])
         default:
             unsupportedInstruction = instruction
         }
