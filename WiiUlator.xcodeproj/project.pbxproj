@@ -15,6 +15,9 @@
             isa = PBXBuildFile;
             fileRef = A10000000000000000000012;
             };
+        A10000000000000000000003 = { isa = PBXBuildFile; fileRef = A10000000000000000000014; };
+        A10000000000000000000004 = { isa = PBXBuildFile; fileRef = A10000000000000000000015; };
+        A10000000000000000000005 = { isa = PBXBuildFile; fileRef = A10000000000000000000016; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +33,10 @@
             path = ContentView.swift;
             sourceTree = "<group>";
         };
+        A10000000000000000000014 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorCore.swift; sourceTree = "<group>"; };
+        A10000000000000000000015 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorMemory.swift; sourceTree = "<group>"; };
+        A10000000000000000000016 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerPCCPU.swift; sourceTree = "<group>"; };
+        A10000000000000000000017 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorCoreTests.swift; sourceTree = "<group>"; };
         A10000000000000000000013 = {
             isa = PBXFileReference;
             explicitFileType = wrapper.application;
@@ -55,6 +62,9 @@
             children = (
                 A10000000000000000000011,
                 A10000000000000000000012,
+                A10000000000000000000014,
+                A10000000000000000000015,
+                A10000000000000000000016,
             );
             path = WiiUlator;
             sourceTree = "<group>";
@@ -143,6 +153,9 @@
             files = (
                 A10000000000000000000001,
                 A10000000000000000000002,
+                A10000000000000000000003,
+                A10000000000000000000004,
+                A10000000000000000000005,
             );
             runOnlyForDeploymentPostprocessing = 0;
         };
