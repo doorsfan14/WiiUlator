@@ -1,0 +1,5 @@
+plugins { id 'com.android.application' }
+
+android { namespace 'net.teamceleste.wiiulator'; compileSdk 35
+    defaultConfig { applicationId 'net.teamceleste.wiiulator'; minSdk 23; targetSdk 35; versionCode 1; versionName '1.0' }
+}
