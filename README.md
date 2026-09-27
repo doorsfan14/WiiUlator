@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/wiiulator.png" alt="WiiUlator app icon" width="180">
+  <img src="docs/wiiulator.png" alt="WiiUlator app icon" width="128">
 </p>
 
 # WiiUlator
