@@ -32,7 +32,7 @@ final class EmulatorCore {
     private(set) var loadedProgram: EmulatorProgram?
     private(set) var instructionCount: UInt64 = 0
 
-    init(memorySize: Int = 64 * 1024 * 1024) {
+    init(memorySize: Int = EmulatorMemoryConfiguration.currentMaximumBytes) {
         self.memory = EmulatorMemory(size: memorySize)
         self.cpu = PowerPCCPU()
         self.gamePad = WiiUGamePad()
@@ -90,6 +90,17 @@ final class EmulatorCore {
     }
 }
 
+enum EmulatorMemoryConfiguration {
+    static let minimumMB = 512
+    static let defaultMB = 2048
+
+    static var currentMaximumBytes: Int {
+        let stored = UserDefaults.standard.integer(forKey: "maximumRAMMB")
+        let megabytes = stored > 0 ? stored : defaultMB
+        return max(minimumMB, megabytes) * 1024 * 1024
+    }
+}
+
 final class EmulatorSession: ObservableObject {
     @Published private(set) var state: EmulatorState = .stopped
     @Published private(set) var programCounter: UInt32 = 0
@@ -100,7 +111,7 @@ final class EmulatorSession: ObservableObject {
     private let loader = WiiUExecutableLoader()
 
     init() {
-        core = EmulatorCore()
+        core = EmulatorCore(memorySize: EmulatorMemoryConfiguration.currentMaximumBytes)
     }
 
     func boot(url: URL) {
