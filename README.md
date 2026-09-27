@@ -1,115 +1,86 @@
 # WiiUlator
 
-WiiUlator is an open-source Wii U emulator for iOS and iPadOS, built with SwiftUI and optimized for ARM64 Apple devices. It focuses on performance, stability, and a modular emulator core, with Metal graphics, JIT support, and GitHub Actions builds planned.
+WiiUlator is an open-source Wii U emulator for iOS, iPadOS, and Android. The project is currently focused on building a portable emulator core alongside native platform frontends.
 
-## Features
+<p align="center">
+  <img src="docs/wiiulator.png" alt="WiiUlator" width="700">
+</p>
 
-- SwiftUI-based interface
-- iOS and iPadOS support
-- iOS 16.0 minimum
-- ARM64 optimization
-- Metal graphics backend
-- Experimental Vulkan backend planned
-- JIT / dynamic recompilation planned
-- Game library and management
-- Game search
-- Game importing to `Documents/games`
-- Square game artwork support through GameTDB-compatible title artwork
+## Source Code
+
+The repository is organized around the emulator core and platform-specific frontends:
+
+- `Sources/` — Swift source code and iOS/iPadOS frontend
+- `android/` — Android application and Android-specific frontend
+- `Tests/` — emulator and platform tests
+- `.github/workflows/` — automated builds and development workflows
+
+The emulator is being developed as a modular codebase so CPU, memory, graphics, audio, input, and platform layers can evolve independently.
+
+## Current Development
+
+WiiUlator is in early development. Current work includes:
+
+- Native SwiftUI frontend for iOS and iPadOS
+- Native Material 3 Android frontend
+- Game library and importing
+- Emulator core development
+- CPU and memory emulation
+- Metal graphics work for Apple platforms
+- Vulkan/OpenGL ES work for Android
 - Configurable controls
-- Graphics settings
-- Performance options
-- Optional developer debugging/performance overlay
-- Debug logging toggle
-- GitHub Actions IPA builds
+- Graphics and performance settings
+- GitHub Actions builds
 
-## Performance
+## Platform Support
 
-WiiUlator is designed with modern Apple hardware in mind, with the iPhone 13 and A15 Bionic being an early performance target.
+### iOS / iPadOS
 
-The goal is stable emulation speed and good frame pacing rather than simply maximizing FPS.
+- iOS 16.0+
+- ARM64
+- SwiftUI
+- Metal
+- Experimental Vulkan support planned
+- JIT / dynamic recompilation planned
 
-Planned performance features include:
+### Android
 
-- 30 FPS modes
-- Performance modes
-- Frame pacing
-- Dynamic recompilation
-- Device-specific optimization
-
-## Graphics
-
-Metal will be the primary graphics backend for Apple platforms.
-
-A graphics abstraction layer will allow additional backends to be implemented later, including an experimental Vulkan backend.
-
-## JIT
-
-JIT and dynamic recompilation are planned as important parts of WiiUlator's performance architecture.
-
-The App Store build will not depend on JIT being available. Development and testing builds may use appropriate signing and debugging configurations for environments where JIT can be enabled.
-
-## Development
-
-WiiUlator is currently in early development.
-
-The first development milestone, **WiiUlator Nightly 1.0**, focuses on building the SwiftUI frontend and establishing the GitHub Actions build system.
-
-The planned development order is:
-
-1. SwiftUI frontend
-2. Game library
-3. Settings and configuration
-4. GitHub Actions IPA builds
-5. Emulator core
-6. CPU emulation
-7. Memory and system emulation
-8. GPU and Metal rendering
-9. Audio and input
-10. Performance optimization
-11. Compatibility testing
+- Android 8.0+ (API 26)
+- ARM64
+- Native Android UI
+- Vulkan / OpenGL ES graphics backends
 
 ## Game Storage
 
-Imported games are copied into the app container at `Documents/games`, exposed in the app as `games`. WiiUlator does not bundle proprietary Wii U game or system files.
+Imported games are stored inside the app's private game directory. WiiUlator does not bundle proprietary Wii U game or system files.
 
-## Game Artwork
+## Development Roadmap
 
-WiiUlator's game library uses square artwork for game icons. A useful source for Wii U 1:1 artwork is the LaunchBox Community **Nintendo Wii U 1:1 Pack**, which provides 500×500 square images. GameTDB is also used for Wii U game metadata and artwork.
+1. Platform frontends
+2. Game library and management
+3. Emulator core
+4. CPU emulation
+5. Memory and system emulation
+6. GPU and graphics rendering
+7. Audio and input
+8. Dynamic recompilation / JIT
+9. Performance optimization
+10. Compatibility testing
 
-## Testing
+## Building
 
-Game files and proprietary Nintendo system files will not be included in the repository or distributed with WiiUlator.
+Builds are automated with GitHub Actions.
 
-Private testing will be performed separately from the public project.
+Development and testing builds may require platform-specific signing, debugging, or JIT configurations.
 
-Testing will eventually cover:
+## Contributing
 
-- Game booting
-- CPU correctness
-- GPU rendering
-- Audio
-- Controller input
-- Wii U GamePad functionality
-- Saves
-- Performance
-- Frame pacing
-- Stability
-- Regression testing
+WiiUlator is currently in active early development. Contributions to the emulator core, platform frontends, graphics, input, performance, testing, and tooling are welcome.
 
-## Build
-
-WiiUlator uses GitHub Actions to build the iOS application.
-
-The nightly workflow targets **iOS 16.0+** and produces an IPA for testing.
-
-## Future Platforms
-
-The initial focus is iOS and iPadOS.
-
-The emulator core will be designed with portability in mind, allowing future work on platforms such as Android.
+Please do not add proprietary Nintendo game, system, or copyrighted distribution files to the repository.
 
 ## Status
 
-🚧 WiiUlator is currently in early development.
+🚧 **Early development**
 
-The immediate goal is to build the frontend, establish reliable IPA builds, and progressively implement the emulator core.
+WiiUlator is currently focused on building the source code and emulator architecture before expanding compatibility.
