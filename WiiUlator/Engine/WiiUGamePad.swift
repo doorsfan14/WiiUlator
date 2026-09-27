@@ -30,22 +30,22 @@ struct WiiUGamePadState: Equatable {
 }
 
 enum WiiUGamePadButton: UInt16 {
-    case a = 1 << 0
-    case b = 1 << 1
-    case x = 1 << 2
-    case y = 1 << 3
-    case zl = 1 << 4
-    case zr = 1 << 5
-    case l = 1 << 6
-    case r = 1 << 7
-    case dpadUp = 1 << 8
-    case dpadDown = 1 << 9
-    case dpadLeft = 1 << 10
-    case dpadRight = 1 << 11
-    case plus = 1 << 12
-    case minus = 1 << 13
-    case home = 1 << 14
-    case sync = 1 << 15
+    case a = 1
+    case b = 2
+    case x = 4
+    case y = 8
+    case zl = 16
+    case zr = 32
+    case l = 64
+    case r = 128
+    case dpadUp = 256
+    case dpadDown = 512
+    case dpadLeft = 1024
+    case dpadRight = 2048
+    case plus = 4096
+    case minus = 8192
+    case home = 16384
+    case sync = 32768
 }
 
 final class WiiUGamePad: ObservableObject {
