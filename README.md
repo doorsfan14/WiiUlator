@@ -3,7 +3,7 @@
 </p>
 
 <p align="left">
-  <img src="docs/wordmark.png" alt="WiiUlator wordmark" width="240">
+  <img src="docs/wordmark.png" alt="WiiUlator wordmark" width="140">
 </p>
 
 # WiiUlator
