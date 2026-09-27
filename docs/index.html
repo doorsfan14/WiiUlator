@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WiiUlator — Wii U emulation on iOS</title>
+<meta name="description" content="WiiUlator is an open-source Wii U emulator for iOS and iPadOS.">
+<style>
+:root{color-scheme:dark;--bg:#08090c;--panel:#111318;--text:#f5f6f8;--muted:#a9adb7;--line:#272b34}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#242936 0,#08090c 42%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;min-height:100vh}
+main{max-width:920px;margin:auto;padding:80px 24px 48px;text-align:center}
+.logo{width:88px;height:88px;margin:0 auto 24px;border-radius:22px;background:#151922;border:1px solid #343946;display:grid;place-items:center;box-shadow:0 18px 50px #0008}
+.logo span{font-weight:800;font-size:30px;letter-spacing:-2px}
+h1{font-size:clamp(44px,10vw,76px);letter-spacing:-4px;margin:0 0 12px}
+.tagline{font-size:20px;color:var(--muted);max-width:650px;margin:0 auto 34px;line-height:1.5}
+.actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+a,button{font:inherit;text-decoration:none;border:0;border-radius:14px;padding:13px 20px;font-weight:650}
+.primary{background:#fff;color:#08090c}.secondary{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+.card{margin:64px auto 0;max-width:760px;background:#0f1116cc;border:1px solid var(--line);border-radius:24px;padding:28px;text-align:left}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}.item{padding:18px;border:1px solid var(--line);border-radius:16px;background:#0b0d11}.item b{display:block;margin-bottom:6px}.item span{color:var(--muted);font-size:14px;line-height:1.45}
+.soon{display:inline-block;margin-left:8px;padding:3px 7px;border-radius:999px;background:#242833;color:#c8ccd5;font-size:11px;vertical-align:middle}
+footer{margin-top:52px;color:#727784;font-size:13px}
+@media(max-width:650px){main{padding-top:52px}.grid{grid-template-columns:1fr}h1{letter-spacing:-2.5px}}
+</style>
+</head>
+<body>
+<main>
+<div class="logo" aria-hidden="true"><span>WU</span></div>
+<h1>WiiUlator</h1>
+<p class="tagline">A Wii U emulator for iOS and iPadOS, built by Team Celeste with SwiftUI and an ARM64-focused architecture.</p>
+<div class="actions">
+<a class="primary" href="#" aria-disabled="true" onclick="return false">Download <span class="soon">COMING SOON</span></a>
+<a class="secondary" href="https://github.com/habibbatista/WiiUlator">View on GitHub</a>
+</div>
+<section class="card">
+<h2>Built for Apple silicon</h2>
+<p style="color:var(--muted);line-height:1.6">WiiUlator is currently in active development. The public download is intentionally disabled until a usable release is ready.</p>
+<div class="grid">
+<div class="item"><b>iOS &amp; iPadOS</b><span>Designed around modern ARM64 Apple devices.</span></div>
+<div class="item"><b>Metal</b><span>Graphics architecture planned around Apple's Metal API.</span></div>
+<div class="item"><b>GamePad</b><span>Wii U GamePad input and touch controls are part of the runtime design.</span></div>
+</div>
+</section>
+<footer>WiiUlator · Team Celeste · Open source under GPL-3.0-or-later</footer>
+</main>
+</body>
+</html>
