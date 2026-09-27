@@ -69,6 +69,7 @@ final class EmulatorCore {
     func load(executable: WiiUExecutable) throws {
         reset()
         try WiiUExecutableLoader().load(executable, into: memory)
+        try WiiURPXLinker().link(executable: executable, memory: memory, runtime: cafeRuntime)
 
         let imageAddress = executable.loadSegments.map(\.virtualAddress).min() ?? executable.entryPoint
         let imageEnd = executable.loadSegments.map {
@@ -86,6 +87,19 @@ final class EmulatorCore {
 
     func step() {
         guard loadedProgram != nil else { return }
+
+        // Imported Cafe functions are represented by guest-visible trampoline
+        // addresses. Intercept them before the PPC core attempts to fetch an
+        // instruction from the host-runtime region.
+        if cafeRuntime.containsStub(cpu.programCounter) {
+            let returnAddress = cpu.linkRegister & 0xFFFFFFFC
+            if cafeRuntime.invokeStub(at: cpu.programCounter, cpu: cpu, memory: memory) {
+                cpu.programCounter = returnAddress
+                instructionCount &+= 1
+                return
+            }
+        }
+
         cpu.step(memory: memory)
         if (cpu.lastInstruction >> 26) == 17 {
             cafeRuntime.handleSystemCall(cpu: cpu, memory: memory)
