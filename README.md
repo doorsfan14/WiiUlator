@@ -63,6 +63,10 @@ The planned development order is:
 10. Performance optimization
 11. Compatibility testing
 
+## Game Artwork
+
+WiiUlator's game library uses square artwork for game icons. A useful source for Wii U 1:1 artwork is the LaunchBox Community **Nintendo Wii U 1:1 Pack**, which provides 500×500 square images. GameTDB is also used for Wii U game metadata and artwork.
+
 ## Testing
 
 Game files and proprietary Nintendo system files will not be included in the repository or distributed with WiiUlator.
