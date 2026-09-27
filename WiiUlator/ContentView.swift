@@ -497,6 +497,22 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("Developer") {
+                    NavigationLink {
+                        DebugSettingsView()
+                    } label: {
+                        Label("Debugging", systemImage: "ladybug")
+                    }
+                }
+
+                Section("Storage") {
+                    NavigationLink {
+                        GamesFolderView()
+                    } label: {
+                        Label("Games Folder", systemImage: "folder")
+                    }
+                }
+
                 Section {
                     NavigationLink {
                         AboutView()
