@@ -224,12 +224,12 @@ public final class MainActivity extends Activity {
         star.setColorFilter(favorites.contains(g.name)?PRIMARY:MUTED);
         star.setBackgroundColor(Color.TRANSPARENT);
         star.setContentDescription("Favorite");
-        star.setOnClickListener(v->{if(favorites.contains(g.name))favorites.remove(g.name);else favorites.add(g.name);showLibrary();});
+        star.setOnClickListener(view->{if(favorites.contains(g.name))favorites.remove(g.name);else favorites.add(g.name);showLibrary();});
         row.addView(star,new LinearLayout.LayoutParams(dp(48),dp(48)));
         outer.addView(row);
 
         MaterialButton play=button("Open game",net.teamceleste.wiiulator.R.drawable.ic_play);
-        play.setOnClickListener(v->startActivity(new Intent(this,EmulatorActivity.class)));
+        play.setOnClickListener(view->startActivity(new Intent(this,EmulatorActivity.class)));
         LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-1,dp(48));
         pp.topMargin=dp(14);
         outer.addView(play,pp);
