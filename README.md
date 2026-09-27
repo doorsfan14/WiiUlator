@@ -13,7 +13,7 @@ WiiUlator is an open-source Wii U emulator for iOS and iPadOS, built with SwiftU
 - JIT / dynamic recompilation planned
 - Game library and management
 - Game search
-- Game importing to `Documents/Apps/Games`
+- Game importing to `Documents/games`
 - Square game artwork support through GameTDB-compatible title artwork
 - Configurable controls
 - Graphics settings
@@ -70,7 +70,7 @@ The planned development order is:
 
 ## Game Storage
 
-Imported games are copied into the app container at `Documents/Apps/Games`, exposed in the app as `Apps/Games`. WiiUlator does not bundle proprietary Wii U game or system files.
+Imported games are copied into the app container at `Documents/games`, exposed in the app as `games`. WiiUlator does not bundle proprietary Wii U game or system files.
 
 ## Game Artwork
 
