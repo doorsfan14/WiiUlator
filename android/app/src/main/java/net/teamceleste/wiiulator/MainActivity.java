@@ -7,6 +7,7 @@ import android.content.res.ColorStateList;
 import android.graphics.*;
 import android.net.Uri;
 import android.view.*;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.*;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
@@ -17,6 +18,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import java.io.*;
 import java.util.*;
+import android.graphics.drawable.AnimatedVectorDrawable;
 
 public final class MainActivity extends Activity {
     private LinearLayout content;
@@ -125,11 +127,18 @@ public final class MainActivity extends Activity {
         nav.setSelectedItemId(1);
         root.addView(nav,new LinearLayout.LayoutParams(-1,-2));
         setContentView(root);
+        root.setAlpha(0f);
+        root.setTranslationY(dp(8));
+        root.animate().alpha(1f).translationY(0f).setDuration(220).setInterpolator(new DecelerateInterpolator()).start();
     }
 
     private void resetContent() {
+        content.animate().cancel();
+        content.setAlpha(0f);
+        content.setTranslationY(dp(6));
         content.removeAllViews();
         content.setPadding(dp(16),dp(4),dp(16),dp(20));
+        content.animate().alpha(1f).translationY(0f).setDuration(180).setStartDelay(25).setInterpolator(new DecelerateInterpolator()).start();
     }
 
     private TextView section(String title) {
@@ -187,6 +196,7 @@ public final class MainActivity extends Activity {
             empty.addView(subtitle,new LinearLayout.LayoutParams(-1,dp(30)));
 
             content.addView(empty,new LinearLayout.LayoutParams(-1,0,1));
+            empty.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(220).setStartDelay(70).start();
             return;
         }
 
