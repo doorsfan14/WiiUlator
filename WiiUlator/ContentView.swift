@@ -15,6 +15,7 @@ struct ContentView: View {
 
     enum Tab {
         case library
+        case favorites
         case settings
     }
 
@@ -25,6 +26,12 @@ struct ContentView: View {
                     Label("Library", systemImage: "square.grid.2x2")
                 }
                 .tag(Tab.library)
+
+            FavoritesView()
+                .tabItem {
+                    Label("Favorites", systemImage: "star")
+                }
+                .tag(Tab.favorites)
 
             SettingsView()
                 .tabItem {
@@ -72,28 +79,41 @@ struct LibraryView: View {
                 } else {
                     List {
                         ForEach(filteredGames) { game in
-                            NavigationLink {
-                                DemoGameView(game: game)
-                            } label: {
-                                HStack(spacing: 12) {
-                                    GameIconView(game: game)
-                                        .frame(width: 64, height: 64)
+                            HStack(spacing: 12) {
+                                NavigationLink {
+                                    DemoGameView(game: game)
+                                } label: {
+                                    HStack(spacing: 12) {
+                                        GameIconView(game: game)
+                                            .frame(width: 64, height: 64)
 
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(game.name)
-                                            .font(.headline)
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(game.name)
+                                                .font(.headline)
 
-                                        LabeledContent("Provider", value: game.provider)
-                                            .font(.subheadline)
-
-                                        if !game.version.isEmpty {
-                                            LabeledContent("Version", value: game.version)
+                                            LabeledContent("Provider", value: game.provider)
                                                 .font(.subheadline)
+
+                                            if !game.version.isEmpty {
+                                                LabeledContent("Version", value: game.version)
+                                                    .font(.subheadline)
+                                            }
                                         }
                                     }
                                 }
-                                .padding(.vertical, 4)
+
+                                Button {
+                                    library.toggleFavorite(game)
+                                } label: {
+                                    Image(systemName: library.isFavorite(game) ? "star.fill" : "star")
+                                        .foregroundStyle(library.isFavorite(game) ? .yellow : .secondary)
+                                        .font(.title3)
+                                        .frame(width: 44, height: 44)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(library.isFavorite(game) ? "Remove from Favorites" : "Add to Favorites")
                             }
+                            .padding(.vertical, 4)
                         }
                         .onDelete { offsets in
                             library.remove(at: offsets, from: filteredGames)
@@ -141,6 +161,81 @@ struct LibraryView: View {
             .onAppear {
                 library.prepareGamesFolder()
             }
+        }
+    }
+}
+
+struct FavoritesView: View {
+    @StateObject private var library = GameLibraryStore.shared
+    @State private var searchText = ""
+
+    private var favoriteGames: [LibraryGame] {
+        let favorites = library.games.filter { library.isFavorite($0) }
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return favorites }
+        return favorites.filter {
+            $0.name.localizedCaseInsensitiveContains(query) ||
+            $0.provider.localizedCaseInsensitiveContains(query)
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if favoriteGames.isEmpty {
+                    VStack(spacing: 10) {
+                        Image(systemName: searchText.isEmpty ? "star" : "magnifyingglass")
+                            .font(.system(size: 34))
+                            .foregroundStyle(.secondary)
+
+                        Text(searchText.isEmpty ? "No Favorites" : "No Results")
+                            .font(.headline)
+
+                        Text(searchText.isEmpty ? "Favourite games will appear here." : "Try a different search.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
+                } else {
+                    List {
+                        ForEach(favoriteGames) { game in
+                            HStack(spacing: 12) {
+                                NavigationLink {
+                                    DemoGameView(game: game)
+                                } label: {
+                                    HStack(spacing: 12) {
+                                        GameIconView(game: game)
+                                            .frame(width: 64, height: 64)
+
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(game.name)
+                                                .font(.headline)
+                                            LabeledContent("Provider", value: game.provider)
+                                                .font(.subheadline)
+                                        }
+                                    }
+                                }
+
+                                Button {
+                                    library.toggleFavorite(game)
+                                } label: {
+                                    Image(systemName: "star.fill")
+                                        .foregroundStyle(.yellow)
+                                        .font(.title3)
+                                        .frame(width: 44, height: 44)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Remove from Favorites")
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Favorites")
+            .searchable(text: $searchText, prompt: "Search favorites")
         }
     }
 }
@@ -1393,6 +1488,9 @@ final class GameLibraryStore: ObservableObject {
     private let key = "wiiulator.library.games"
 
     @Published private(set) var games: [LibraryGame] = []
+    @Published private(set) var favoriteIDs: Set<UUID> = []
+
+    private let favoritesKey = "wiiulator.library.favorites"
 
     static var gamesFolderURL: URL {
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -1401,7 +1499,36 @@ final class GameLibraryStore: ObservableObject {
 
     private init() {
         load()
+        loadFavorites()
         prepareGamesFolder()
+    }
+
+    func isFavorite(_ game: LibraryGame) -> Bool {
+        favoriteIDs.contains(game.id)
+    }
+
+    func toggleFavorite(_ game: LibraryGame) {
+        if favoriteIDs.contains(game.id) {
+            favoriteIDs.remove(game.id)
+        } else {
+            favoriteIDs.insert(game.id)
+        }
+        saveFavorites()
+    }
+
+    private func loadFavorites() {
+        guard let data = UserDefaults.standard.data(forKey: favoritesKey),
+              let decoded = try? JSONDecoder().decode(Set<UUID>.self, from: data) else {
+            favoriteIDs = []
+            return
+        }
+        favoriteIDs = decoded
+    }
+
+    private func saveFavorites() {
+        if let data = try? JSONEncoder().encode(favoriteIDs) {
+            UserDefaults.standard.set(data, forKey: favoritesKey)
+        }
     }
 
     func prepareGamesFolder() {
@@ -1484,10 +1611,12 @@ final class GameLibraryStore: ObservableObject {
             if let storedIndex = games.firstIndex(where: { $0.id == game.id }) {
                 let url = URL(fileURLWithPath: games[storedIndex].path)
                 try? FileManager.default.removeItem(at: url)
+                favoriteIDs.remove(game.id)
                 games.remove(at: storedIndex)
             }
         }
         save()
+        saveFavorites()
     }
 
     private func load() {
