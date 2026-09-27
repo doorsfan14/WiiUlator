@@ -101,7 +101,8 @@ enum EmulatorMemoryConfiguration {
     }
 }
 
-@MainActor\nfinal class EmulatorSession: ObservableObject {
+@MainActor
+final class EmulatorSession: ObservableObject {
     @Published private(set) var state: EmulatorState = .stopped
     @Published private(set) var programCounter: UInt32 = 0
     @Published private(set) var instructionCount: UInt64 = 0
