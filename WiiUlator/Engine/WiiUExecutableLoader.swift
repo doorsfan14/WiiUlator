@@ -5,6 +5,7 @@ struct WiiUExecutable {
     let entryPoint: UInt32
     let loadSegments: [WiiULoadSegment]
     let fileSize: Int
+    let module: WiiURPXModule?
 }
 
 struct WiiULoadSegment {
@@ -127,11 +128,18 @@ struct WiiUExecutableLoader {
             throw WiiUExecutableLoaderError.noLoadableSegments
         }
 
+        let module = try? WiiURPXModuleParser().parse(
+            data: data,
+            url: url,
+            entryPoint: entryPoint
+        )
+
         return WiiUExecutable(
             url: url,
             entryPoint: entryPoint,
             loadSegments: segments,
-            fileSize: data.count
+            fileSize: data.count,
+            module: module
         )
     }
 
