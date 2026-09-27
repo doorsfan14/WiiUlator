@@ -408,6 +408,11 @@ struct DemoGameView: View {
             }
             executableURL = found
         } else {
+            let ext = sourceURL.pathExtension.lowercased()
+            if ["zip", "wua", "wud", "wux"].contains(ext) {
+                session.fail("This \(ext.uppercased()) container is imported, but container-backed launching is not implemented yet.")
+                return
+            }
             executableURL = sourceURL
         }
 
@@ -1543,6 +1548,14 @@ final class GameLibraryStore: ObservableObject {
             if accessing { url.stopAccessingSecurityScopedResource() }
         }
 
+        let extensionName = url.pathExtension.lowercased()
+        let isWiiUContainer = ["zip", "wua", "wud", "wux"].contains(extensionName)
+
+        if !url.hasDirectoryPath && isWiiUContainer {
+            importContainer(from: url, kind: extensionName)
+            return
+        }
+
         guard let executableURL = findWiiUExecutable(in: url),
               (try? WiiUExecutableLoader().inspect(url: executableURL)) != nil else {
             return
@@ -1573,6 +1586,46 @@ final class GameLibraryStore: ObservableObject {
             )
 
             _ = metadata
+            games.append(game)
+            save()
+        } catch {
+            try? FileManager.default.removeItem(at: finalDestination)
+        }
+    }
+
+    private func importContainer(from url: URL, kind: String) {
+        let destination = Self.gamesFolderURL.appendingPathComponent(url.lastPathComponent)
+        var finalDestination = destination
+
+        if FileManager.default.fileExists(atPath: finalDestination.path) {
+            finalDestination = Self.gamesFolderURL.appendingPathComponent("\(UUID().uuidString)-\(url.lastPathComponent)")
+        }
+
+        do {
+            try FileManager.default.copyItem(at: url, to: finalDestination)
+
+            let formatName: String
+            switch kind {
+            case "zip":
+                formatName = "ZIP archive"
+            case "wua":
+                formatName = "Wii U Archive"
+            case "wud":
+                formatName = "Wii U disc image"
+            case "wux":
+                formatName = "Wii U compressed disc image"
+            default:
+                formatName = "Wii U container"
+            }
+
+            let game = LibraryGame(
+                name: url.deletingPathExtension().lastPathComponent,
+                provider: formatName,
+                version: "",
+                titleID: nil,
+                path: finalDestination.path
+            )
+
             games.append(game)
             save()
         } catch {
