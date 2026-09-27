@@ -3,9 +3,9 @@
 </p>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/wordmark_dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="docs/wordmark_light.png">
-  <img src="docs/wordmark_light.png" alt="WiiUlator wordmark">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/wordmark2_old.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/wordmark1_old.PNG">
+  <img src="docs/wordmark.png" alt="WiiUlator wordmark">
 </picture>
 
 # WiiUlator
