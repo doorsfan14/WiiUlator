@@ -181,7 +181,7 @@ struct DemoGameView: View {
     let game: LibraryGame
     @StateObject private var session = EmulatorSession()
     @AppStorage("debugOverlayEnabled") private var debugOverlayEnabled = false
-    @Environment(\\.dismiss) private var dismiss
+    @Environment(\.dismiss) private var dismiss
     @State private var showingControls = true
     @State private var showingStopConfirmation = false
     @State private var showingRuntimeMenu = false
@@ -344,7 +344,7 @@ struct EmulatorVideoView: View {
                 Color.black
 
                 VStack(spacing: 8) {
-                    Image(systemName: session.state == .failed("") ? "exclamationmark.triangle" : "gamecontroller")
+                    Image(systemName: isFailed ? "exclamationmark.triangle" : "gamecontroller")
                         .font(.system(size: 34, weight: .medium))
                         .foregroundStyle(.white.opacity(0.32))
 
