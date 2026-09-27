@@ -4,6 +4,7 @@ struct WiiUExecutable {
     let url: URL
     let entryPoint: UInt32
     let loadSegments: [WiiULoadSegment]
+    let fileSize: Int
 }
 
 struct WiiULoadSegment {
@@ -11,6 +12,7 @@ struct WiiULoadSegment {
     let fileOffset: UInt32
     let fileSize: UInt32
     let memorySize: UInt32
+    let flags: UInt32
 }
 
 enum WiiUExecutableLoaderError: LocalizedError {
@@ -21,16 +23,26 @@ enum WiiUExecutableLoaderError: LocalizedError {
     case wrongArchitecture
     case invalidProgramHeaders
     case noLoadableSegments
+    case segmentOutOfBounds
 
     var errorDescription: String? {
         switch self {
-        case .unreadable: return "The selected file could not be read."
-        case .tooSmall: return "The executable is too small to contain a valid ELF header."
-        case .invalidMagic: return "The file is not an ELF executable."
-        case .unsupportedFormat: return "This ELF format is not supported yet. Wii Ulator currently expects 32-bit big-endian executables."
-        case .wrongArchitecture: return "The executable is not a PowerPC executable."
-        case .invalidProgramHeaders: return "The executable contains invalid program headers."
-        case .noLoadableSegments: return "The executable does not contain a loadable program segment."
+        case .unreadable:
+            return "The selected executable could not be read."
+        case .tooSmall:
+            return "The executable is too small to contain a valid ELF header."
+        case .invalidMagic:
+            return "The file is not an ELF executable."
+        case .unsupportedFormat:
+            return "This executable is not a 32-bit big-endian Wii U ELF/RPX image."
+        case .wrongArchitecture:
+            return "The executable is not a PowerPC executable."
+        case .invalidProgramHeaders:
+            return "The executable contains invalid program headers."
+        case .noLoadableSegments:
+            return "The executable does not contain a loadable program segment."
+        case .segmentOutOfBounds:
+            return "A loadable segment extends beyond the executable file."
         }
     }
 }
@@ -41,11 +53,18 @@ struct WiiUExecutableLoader {
             throw WiiUExecutableLoaderError.unreadable
         }
 
+        return try inspect(data: data, url: url)
+    }
+
+    func inspect(data: Data, url: URL) throws -> WiiUExecutable {
         guard data.count >= 52 else {
             throw WiiUExecutableLoaderError.tooSmall
         }
 
-        guard data[0] == 0x7f, data[1] == 0x45, data[2] == 0x4c, data[3] == 0x46 else {
+        guard data[0] == 0x7f,
+              data[1] == 0x45,
+              data[2] == 0x4c,
+              data[3] == 0x46 else {
             throw WiiUExecutableLoaderError.invalidMagic
         }
 
@@ -64,9 +83,10 @@ struct WiiUExecutableLoader {
         let programHeaderCount = Int(read16(data, at: 44))
 
         guard programHeaderSize >= 32,
-              programHeaderOffset >= 0,
               programHeaderCount > 0,
-              programHeaderOffset + programHeaderSize * programHeaderCount <= data.count else {
+              programHeaderOffset >= 0,
+              programHeaderOffset <= data.count,
+              programHeaderCount <= (data.count - programHeaderOffset) / programHeaderSize else {
             throw WiiUExecutableLoaderError.invalidProgramHeaders
         }
 
@@ -78,14 +98,18 @@ struct WiiUExecutableLoader {
 
             guard type == 1 else { continue }
 
+            let flags = read32(data, at: offset + 24)
             let fileOffset = read32(data, at: offset + 4)
             let virtualAddress = read32(data, at: offset + 8)
             let fileSize = read32(data, at: offset + 16)
             let memorySize = read32(data, at: offset + 20)
 
-            guard UInt64(fileOffset) + UInt64(fileSize) <= UInt64(data.count),
-                  memorySize >= fileSize else {
+            guard memorySize >= fileSize else {
                 throw WiiUExecutableLoaderError.invalidProgramHeaders
+            }
+
+            guard UInt64(fileOffset) + UInt64(fileSize) <= UInt64(data.count) else {
+                throw WiiUExecutableLoaderError.segmentOutOfBounds
             }
 
             segments.append(
@@ -93,7 +117,8 @@ struct WiiUExecutableLoader {
                     virtualAddress: virtualAddress,
                     fileOffset: fileOffset,
                     fileSize: fileSize,
-                    memorySize: memorySize
+                    memorySize: memorySize,
+                    flags: flags
                 )
             )
         }
@@ -105,8 +130,40 @@ struct WiiUExecutableLoader {
         return WiiUExecutable(
             url: url,
             entryPoint: entryPoint,
-            loadSegments: segments
+            loadSegments: segments,
+            fileSize: data.count
         )
+    }
+
+    func load(_ executable: WiiUExecutable, into memory: EmulatorMemory) throws {
+        let data: Data
+        do {
+            data = try Data(contentsOf: executable.url)
+        } catch {
+            throw WiiUExecutableLoaderError.unreadable
+        }
+
+        for segment in executable.loadSegments {
+            let start = Int(segment.fileOffset)
+            let end = start + Int(segment.fileSize)
+            guard start >= 0, end <= data.count else {
+                throw WiiUExecutableLoaderError.segmentOutOfBounds
+            }
+
+            if segment.fileSize > 0 {
+                memory.load(
+                    Array(data[start..<end]),
+                    at: segment.virtualAddress
+                )
+            }
+
+            if segment.memorySize > segment.fileSize {
+                memory.zero(
+                    segment.memorySize - segment.fileSize,
+                    at: segment.virtualAddress &+ segment.fileSize
+                )
+            }
+        }
     }
 
     private func read16(_ data: Data, at offset: Int) -> UInt16 {
