@@ -2,7 +2,6 @@ import SwiftUI
 import UIKit
 import Darwin
 import UniformTypeIdentifiers
-import Darwin
 
 struct ContentView: View {
     @State private var selectedTab: Tab = .library
@@ -144,6 +143,7 @@ struct DemoGameView: View {
         .statusBarHidden(true)
         .persistentSystemOverlays(.hidden)
         .toolbar(.hidden, for: .navigationBar)
+        .toolbar(.hidden, for: .tabBar)
         .navigationBarBackButtonHidden(true)
         .onAppear {
             LandscapeGameSession.begin()
@@ -157,28 +157,10 @@ struct DemoGameView: View {
 private enum LandscapeGameSession {
     static func begin() {
         OrientationController.lockLandscape()
-        hideBottomBar()
     }
 
     static func end() {
         OrientationController.unlock()
-        showBottomBar()
-    }
-
-    private static func hideBottomBar() {
-        let selector = NSSelectorFromString("setTabBarHidden:animated:")
-        guard let tabBar = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.rootViewController?.tabBarController,
-              tabBar.responds(to: selector) else { return }
-
-        _ = tabBar.perform(selector, with: true, with: false)
-    }
-
-    private static func showBottomBar() {
-        let selector = NSSelectorFromString("setTabBarHidden:animated:")
-        guard let tabBar = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.rootViewController?.tabBarController,
-              tabBar.responds(to: selector) else { return }
-
-        _ = tabBar.perform(selector, with: false, with: false)
     }
 }
 
@@ -210,8 +192,8 @@ struct SimpleTouchControls: View {
     var body: some View {
         GeometryReader { proxy in
             let compact = proxy.size.width < 700
-            let buttonSize = compact ? CGFloat(40) : CGFloat(48)
-            let stickSize = compact ? CGFloat(70) : CGFloat(82)
+            let buttonSize = compact ? CGFloat(54) : CGFloat(62)
+            let stickSize = compact ? CGFloat(78) : CGFloat(92)
 
             ZStack {
                 VStack {
@@ -316,18 +298,18 @@ struct SimpleDiamondButtons: View {
     var body: some View {
         ZStack {
             SimpleFaceButton(title: "X", size: size)
-                .offset(y: -size * 0.58)
+                .offset(y: -size * 1.12)
 
             SimpleFaceButton(title: "Y", size: size)
-                .offset(x: -size * 0.58)
+                .offset(x: -size * 1.12)
 
             SimpleFaceButton(title: "A", size: size)
-                .offset(x: size * 0.58)
+                .offset(x: size * 1.12)
 
             SimpleFaceButton(title: "B", size: size)
-                .offset(y: size * 0.58)
+                .offset(y: size * 1.12)
         }
-        .frame(width: size * 2.35, height: size * 2.35)
+        .frame(width: size * 3.0, height: size * 3.0)
     }
 }
 
@@ -338,12 +320,12 @@ struct SimpleFaceButton: View {
 
     var body: some View {
         Text(title)
-            .font(.system(size: size * 0.30, weight: .bold, design: .rounded))
+            .font(.system(size: size * 0.34, weight: .bold, design: .rounded))
             .foregroundStyle(.white.opacity(0.70))
-            .frame(width: size, height: size)
-            .background(.white.opacity(0.10), in: Circle())
+            .frame(width: size * 0.88, height: size * 0.72)
+            .background(.white.opacity(0.10), in: Capsule())
             .overlay {
-                Circle()
+                Capsule()
                     .stroke(.white.opacity(0.20), lineWidth: 1)
             }
             .scaleEffect(pressed ? 0.90 : 1)
