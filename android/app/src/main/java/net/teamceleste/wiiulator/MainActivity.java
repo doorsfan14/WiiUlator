@@ -42,8 +42,8 @@ public final class MainActivity extends Activity {
         BG = MaterialColors.getColor(this, android.R.attr.colorBackground, Color.BLACK);
         PANEL = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurfaceContainer, BG);
         PANEL2 = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurfaceContainerHigh, PANEL);
-        BLUE = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary, Color.BLUE);
-        CYAN = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSecondary, BLUE);
+        BLUE = MaterialColors.getColor(this, android.R.attr.colorAccent, Color.BLUE);
+        CYAN = MaterialColors.getColor(this, android.R.attr.colorAccent, BLUE);
         TEXT = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface, Color.WHITE);
         MUTED = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant, TEXT);
         prefs = getSharedPreferences("wiiulator", MODE_PRIVATE);
