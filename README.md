@@ -8,69 +8,55 @@
 
 # WiiUlator
 
-WiiUlator is an open-source Wii U emulator for iOS, iPadOS, and Android, developed by Team Celeste.
+A Wii U emulator for iOS, iPadOS, and Android.
 
-The project has separate native frontends for each platform and a portable emulator core. The Android frontend uses native Android UI, while the iOS/iPadOS frontend uses SwiftUI.
-
-## Emulator
-
-WiiUlator is being developed around the main components required to run Wii U software:
+## Features
 
 - PowerPC CPU emulation
 - Memory and system emulation
-- GPU and graphics rendering
+- GPU rendering
 - Audio
-- Input and controller handling
-- Game library and game importing
+- Input and controller support
+- Game library and importing
 - JIT / dynamic recompilation
 
-The emulator is currently in development and is not presented as a finished compatibility layer.
+## Requirements
 
-## iOS / iPadOS
+### iOS / iPadOS
 
-### Requirements
+- iOS 16.0+
+- ARM64
+- JIT
 
-- iOS 16.0 or later
-- ARM64 device
-- JIT required for practical emulation
+### Android
 
-### Sideloading
+- Android 8.0+ (API 26)
+- ARM64
+- Vulkan or OpenGL ES
 
-Install the WiiUlator IPA with:
+## Installation
+
+### iOS / iPadOS
+
+WiiUlator requires sideloading.
 
 - [SideStore](https://sidestore.io/) — [installation guide](https://docs.sidestore.io/docs/installation/install)
-- [AltStore](https://altstore.io/) — [official guide](https://faq.altstore.io/)
+- [AltStore](https://altstore.io/) — [guide](https://faq.altstore.io/)
+- [SideStore GitHub](https://github.com/SideStore/SideStore)
+- [StikDebug GitHub](https://github.com/StikDebug/StikDebug) — JIT
+- [StikDebug Guide](https://github.com/StikDebug/StikDebug-Guide)
+- [SideStore JIT Guide](https://docs.sidestore.io/docs/advanced/jit)
 
-Repositories and documentation:
+For jailbroken devices, use TrollStore if supported.
 
-- [SideStore repository](https://github.com/SideStore/SideStore)
-- [SideStore documentation](https://github.com/SideStore/SideStore-Docs)
+### Android
 
-### JIT
-
-WiiUlator requires JIT for emulation.
-
-- [StikDebug](https://github.com/StikDebug/StikDebug) — JIT/debugging tool
-- [StikDebug Guide](https://github.com/StikDebug/StikDebug-Guide) — setup documentation
-- [StikJIT](https://github.com/StikDebug/StikJIT) — JIT-related project
-- [SideStore JIT guide](https://docs.sidestore.io/docs/advanced/jit)
-
-For jailbroken devices, TrollStore can be used where it is already installed and supported.
-
-## Android
-
-### Requirements
-
-- Android 8.0 or later (API 26+)
-- ARM64 device
-- Vulkan or OpenGL ES support
-
-The Android frontend is built with native Android components and is separate from the iOS/iPadOS UI.
-
-## Game Files
-
-WiiUlator does not distribute Wii U games or proprietary Wii U system files. Users are responsible for providing compatible files they are legally entitled to use.
+Install the APK and provide your own Wii U game and system files.
 
 ## Building
 
-Development builds are provided through GitHub Actions. Platform-specific signing and JIT configuration may be required for development and testing.
+Builds are provided through GitHub Actions.
+
+## Legal
+
+WiiUlator does not distribute copyrighted Wii U games or proprietary system files.
