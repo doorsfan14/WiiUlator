@@ -83,56 +83,98 @@ struct WiiUExecutableLoader {
         let programHeaderSize = Int(read16(data, at: 42))
         let programHeaderCount = Int(read16(data, at: 44))
 
-        guard programHeaderSize >= 32,
-              programHeaderCount > 0,
-              programHeaderOffset >= 0,
-              programHeaderOffset <= data.count,
-              programHeaderCount <= (data.count - programHeaderOffset) / programHeaderSize else {
-            throw WiiUExecutableLoaderError.invalidProgramHeaders
-        }
-
         var segments: [WiiULoadSegment] = []
+        var module: WiiURPXModule?
 
-        for index in 0..<programHeaderCount {
-            let offset = programHeaderOffset + index * programHeaderSize
-            let type = read32(data, at: offset)
+        // RPX/RPL images use ELF section headers rather than a normal
+        // executable program-header table. Keep standard ELF loading when
+        // program headers are present, but fall back to allocatable sections
+        // for Cafe modules.
+        let hasValidProgramHeaders =
+            programHeaderSize >= 32 &&
+            programHeaderCount > 0 &&
+            programHeaderOffset >= 0 &&
+            programHeaderOffset <= data.count &&
+            programHeaderCount <= (data.count - programHeaderOffset) / programHeaderSize
 
-            guard type == 1 else { continue }
+        if hasValidProgramHeaders {
+            for index in 0..<programHeaderCount {
+                let offset = programHeaderOffset + index * programHeaderSize
+                let type = read32(data, at: offset)
 
-            let flags = read32(data, at: offset + 24)
-            let fileOffset = read32(data, at: offset + 4)
-            let virtualAddress = read32(data, at: offset + 8)
-            let fileSize = read32(data, at: offset + 16)
-            let memorySize = read32(data, at: offset + 20)
+                guard type == 1 else { continue }
 
-            guard memorySize >= fileSize else {
+                let flags = read32(data, at: offset + 24)
+                let fileOffset = read32(data, at: offset + 4)
+                let virtualAddress = read32(data, at: offset + 8)
+                let fileSize = read32(data, at: offset + 16)
+                let memorySize = read32(data, at: offset + 20)
+
+                guard memorySize >= fileSize else {
+                    throw WiiUExecutableLoaderError.invalidProgramHeaders
+                }
+
+                guard UInt64(fileOffset) + UInt64(fileSize) <= UInt64(data.count) else {
+                    throw WiiUExecutableLoaderError.segmentOutOfBounds
+                }
+
+                segments.append(
+                    WiiULoadSegment(
+                        virtualAddress: virtualAddress,
+                        fileOffset: fileOffset,
+                        fileSize: fileSize,
+                        memorySize: memorySize,
+                        flags: flags
+                    )
+                )
+            }
+        } else {
+            module = try? WiiURPXModuleParser().parse(
+                data: data,
+                url: url,
+                entryPoint: entryPoint
+            )
+
+            guard let rpx = module, rpx.isRPXLike else {
                 throw WiiUExecutableLoaderError.invalidProgramHeaders
             }
 
-            guard UInt64(fileOffset) + UInt64(fileSize) <= UInt64(data.count) else {
-                throw WiiUExecutableLoaderError.segmentOutOfBounds
-            }
+            let allocFlag: UInt32 = 0x2
+            let noBitsType: UInt32 = 8
 
-            segments.append(
-                WiiULoadSegment(
-                    virtualAddress: virtualAddress,
-                    fileOffset: fileOffset,
-                    fileSize: fileSize,
-                    memorySize: memorySize,
-                    flags: flags
+            for section in rpx.sections where (section.flags & allocFlag) != 0 {
+                let isNoBits = section.type == noBitsType
+                guard isNoBits || section.size > 0 else { continue }
+
+                if !isNoBits {
+                    guard UInt64(section.offset) + UInt64(section.size) <= UInt64(data.count) else {
+                        throw WiiUExecutableLoaderError.segmentOutOfBounds
+                    }
+                }
+
+                segments.append(
+                    WiiULoadSegment(
+                        virtualAddress: section.address,
+                        fileOffset: section.offset,
+                        fileSize: isNoBits ? 0 : section.size,
+                        memorySize: section.size,
+                        flags: section.flags
+                    )
                 )
-            )
+            }
         }
 
         guard !segments.isEmpty else {
             throw WiiUExecutableLoaderError.noLoadableSegments
         }
 
-        let module = try? WiiURPXModuleParser().parse(
-            data: data,
-            url: url,
-            entryPoint: entryPoint
-        )
+        if module == nil {
+            module = try? WiiURPXModuleParser().parse(
+                data: data,
+                url: url,
+                entryPoint: entryPoint
+            )
+        }
 
         return WiiUExecutable(
             url: url,
