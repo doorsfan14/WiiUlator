@@ -113,6 +113,15 @@ final class EmulatorMemory {
         write8(at: address &+ 1, value: UInt8(value & 0xff))
     }
 
+    func read64(at address: UInt32) -> UInt64 {
+        UInt64(read32(at: address)) << 32 | UInt64(read32(at: address &+ 4))
+    }
+
+    func write64(at address: UInt32, value: UInt64) {
+        write32(at: address, value: UInt32(value >> 32))
+        write32(at: address &+ 4, value: UInt32(value & 0xffff_ffff))
+    }
+
     func write32(at address: UInt32, value: UInt32) {
         write8(at: address, value: UInt8((value >> 24) & 0xff))
         write8(at: address &+ 1, value: UInt8((value >> 16) & 0xff))
