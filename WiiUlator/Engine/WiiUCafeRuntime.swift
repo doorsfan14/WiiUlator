@@ -23,6 +23,21 @@ struct WiiUCafeRuntime {
         initialized = true
     }
 
+    mutating func handleSystemCall(cpu: PowerPCCPU, memory: EmulatorMemory) {
+        guard initialized else { return }
+
+        switch cpu.generalPurposeRegisters[0] {
+        case 0x100:
+            // KeAppPanic: leave the exception visible to the emulator
+            // without terminating the host process.
+            cpu.generalPurposeRegisters[3] = UInt32(bitPattern: -1)
+        default:
+            // Unknown Cafe syscall: return an error rather than executing
+            // through an unmapped host address.
+            cpu.generalPurposeRegisters[3] = UInt32(bitPattern: -1)
+        }
+    }
+
     func address(for symbol: Symbol) -> UInt32? {
         switch symbol {
         case .OSReport: return 0xFFF00000
