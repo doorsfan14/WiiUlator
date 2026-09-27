@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 
 private enum WiiUlatorBuildInfo {
     static let version = "1.0"
-    static let identifier = "26W001"
+    static let identifier = "26W002"
 }
 
 struct ContentView: View {
@@ -830,7 +830,7 @@ private enum WiiUSystemUpdater {
         request.httpBody = body.data(using: .utf8)
         request.setValue("\"urn:nus.wsapi.broadon.com/GetSystemUpdate\"", forHTTPHeaderField: "SOAPAction")
         request.setValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
-        request.setValue("wii libnup/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("EVL NUP 040800 Sep 18 2012 20:20:02", forHTTPHeaderField: "User-Agent")
         request.timeoutInterval = 20
 
         do {
