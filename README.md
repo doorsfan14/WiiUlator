@@ -2,11 +2,9 @@
   <img src="docs/wiiulator.png" alt="WiiUlator app icon" width="128">
 </p>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/wordmark2_old.png">
-  <source media="(prefers-color-scheme: light)" srcset="docs/wordmark1_old.PNG">
+<p align="center">
   <img src="docs/wordmark.png" alt="WiiUlator wordmark">
-</picture>
+</p>
 
 # WiiUlator
 
