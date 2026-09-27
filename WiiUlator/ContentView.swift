@@ -174,6 +174,10 @@ struct DemoGameView: View {
             LandscapeGameSession.end()
         }
     }
+
+    private func endEmulation() {
+        dismiss()
+    }
 }
 
 private enum LandscapeGameSession {
@@ -698,7 +702,7 @@ private struct DeviceInfo {
 
 private enum JITStatus {
     static var isEnabled: Bool {
-        let pageSize = getpagesize()
+        let pageSize = Int(getpagesize())
         let memory = mmap(
             nil,
             pageSize,
