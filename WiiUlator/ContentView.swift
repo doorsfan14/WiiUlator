@@ -31,11 +31,21 @@ struct LibraryView: View {
 
     var body: some View {
         NavigationStack {
-            ContentUnavailableView(
-                "No Games",
-                systemImage: "gamecontroller",
-                description: Text("Import a Wii U game to add it to your library.")
-            )
+            VStack(spacing: 12) {
+                Image(systemName: "gamecontroller")
+                    .font(.system(size: 42))
+                    .foregroundStyle(.secondary)
+
+                Text("No Games")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+
+                Text("Import a Wii U game to add it to your library.")
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle("Library")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -66,6 +76,7 @@ struct SettingsView: View {
                         GraphicsSettingsView()
                     } label: {
                         Label("Graphics", systemImage: "display")
+                    }
 
                     NavigationLink {
                         ControlsSettingsView()
@@ -77,6 +88,7 @@ struct SettingsView: View {
                         AudioSettingsView()
                     } label: {
                         Label("Audio", systemImage: "speaker.wave.2")
+                    }
 
                     NavigationLink {
                         SystemSettingsView()
