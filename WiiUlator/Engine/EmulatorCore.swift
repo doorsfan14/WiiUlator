@@ -28,19 +28,26 @@ enum EmulatorState: Equatable {
 final class EmulatorCore {
     let memory: EmulatorMemory
     let cpu: PowerPCCPU
+    let cpus: [PowerPCCPU]
     let gamePad: WiiUGamePad
+    private(set) var cafeRuntime = WiiUCafeRuntime()
     private(set) var loadedProgram: EmulatorProgram?
     private(set) var instructionCount: UInt64 = 0
 
     init(memorySize: Int = EmulatorMemoryConfiguration.currentMaximumBytes) {
         self.memory = EmulatorMemory(size: memorySize)
-        self.cpu = PowerPCCPU()
+        let processors = (0..<3).map { _ in PowerPCCPU() }
+        self.cpus = processors
+        self.cpu = processors[0]
         self.gamePad = WiiUGamePad()
     }
 
     func reset() {
         memory.reset()
-        cpu.reset()
+        for processor in cpus {
+            processor.reset()
+        }
+        cafeRuntime.reset()
         gamePad.reset()
         loadedProgram = nil
         instructionCount = 0
@@ -55,6 +62,7 @@ final class EmulatorCore {
             imageSize: data.count
         )
         cpu.programCounter = entry
+        cafeRuntime.initialize()
         instructionCount = 0
     }
 
@@ -73,11 +81,15 @@ final class EmulatorCore {
             imageSize: Int(imageEnd &- imageAddress)
         )
         cpu.programCounter = executable.entryPoint
+        cafeRuntime.initialize()
     }
 
     func step() {
         guard loadedProgram != nil else { return }
         cpu.step(memory: memory)
+        if (cpu.lastInstruction >> 26) == 17 {
+            cafeRuntime.handleSystemCall(cpu: cpu, memory: memory)
+        }
         instructionCount &+= 1
     }
 
