@@ -452,6 +452,16 @@ private enum OrientationController {
 
 struct SimpleTouchControls: View {
     let gamePad: WiiUGamePad
+    @AppStorage("britishEnglishUnlocked") private var britishEnglishUnlocked = false
+    @State private var lastButtonBits: UInt16 = 0
+    @State private var codeIndex = 0
+    @State private var showingBritishUnlock = false
+
+    private let britishCode: [WiiUGamePadButton] = [
+        .dpadUp, .dpadUp, .dpadDown, .dpadDown,
+        .dpadLeft, .dpadRight, .dpadLeft, .dpadRight,
+        .a, .b, .plus, .minus
+    ]
 
     var body: some View {
         GeometryReader { proxy in
@@ -494,6 +504,39 @@ struct SimpleTouchControls: View {
             }
         }
         .allowsHitTesting(true)
+        .onReceive(gamePad.$state) { state in
+            guard !britishEnglishUnlocked else {
+                lastButtonBits = state.buttons
+                return
+            }
+
+            let newlyPressed = state.buttons & ~lastButtonBits
+            lastButtonBits = state.buttons
+
+            guard newlyPressed != 0 else { return }
+
+            for expected in britishCode {
+                if newlyPressed & expected.rawValue != 0 {
+                    if expected == britishCode[codeIndex] {
+                        codeIndex += 1
+
+                        if codeIndex == britishCode.count {
+                            britishEnglishUnlocked = true
+                            codeIndex = 0
+                            showingBritishUnlock = true
+                        }
+                    } else {
+                        codeIndex = expected == britishCode[0] ? 1 : 0
+                    }
+                    break
+                }
+            }
+        }
+        .alert("English (UK) ☕ Unlocked", isPresented: $showingBritishUnlock) {
+            Button("Brilliant") { }
+        } message: {
+            Text("I hereby declare that the aforementioned language option has been unlocked.")
+        }
     }
 }
 
@@ -663,6 +706,7 @@ struct SimpleShoulderButton: View {
 
 struct SettingsView: View {
     @AppStorage("appLanguage") private var appLanguage = ""
+    @AppStorage("britishEnglishUnlocked") private var britishEnglishUnlocked = false
 
     var body: some View {
         NavigationStack {
@@ -674,7 +718,10 @@ struct SettingsView: View {
                         Text("Portuguese").tag("pt")
                         Text("Japanese").tag("ja")
                         Text("Chinese").tag("zh-Hans")
-                        Text("English (UK) ☕").tag("en-GB")
+
+                        if britishEnglishUnlocked {
+                            Text("English (UK) ☕").tag("en-GB")
+                        }
                     }
                 }
 
