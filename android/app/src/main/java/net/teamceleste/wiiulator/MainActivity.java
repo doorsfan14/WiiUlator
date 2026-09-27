@@ -8,6 +8,9 @@ import android.graphics.drawable.*;
 import android.net.Uri;
 import android.view.*;
 import android.widget.*;
+import com.google.android.material.color.DynamicColors;
+import com.google.android.material.color.MaterialColors;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import java.io.*;
 import java.util.*;
 
@@ -20,13 +23,13 @@ public final class MainActivity extends Activity {
     private android.content.SharedPreferences prefs;
     private static final int PICK = 7;
 
-    private static final int BG = Color.rgb(7, 12, 20);
-    private static final int PANEL = Color.rgb(15, 24, 36);
-    private static final int PANEL2 = Color.rgb(20, 32, 48);
-    private static final int BLUE = Color.rgb(0, 174, 255);
-    private static final int CYAN = Color.rgb(85, 220, 255);
-    private static final int TEXT = Color.rgb(245, 249, 255);
-    private static final int MUTED = Color.rgb(150, 166, 184);
+    private static int BG;
+    private static int PANEL;
+    private static int PANEL2;
+    private static int BLUE;
+    private static int CYAN;
+    private static int TEXT;
+    private static int MUTED;
 
     private static final class Game {
         final String name, provider, version;
@@ -35,6 +38,14 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
+        DynamicColors.applyToActivityIfAvailable(this);
+        BG = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurface, Color.BLACK);
+        PANEL = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurfaceContainer, BG);
+        PANEL2 = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurfaceContainerHigh, PANEL);
+        BLUE = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary, Color.BLUE);
+        CYAN = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSecondary, BLUE);
+        TEXT = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface, Color.WHITE);
+        MUTED = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurfaceVariant, TEXT);
         prefs = getSharedPreferences("wiiulator", MODE_PRIVATE);
         setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         buildShell();
@@ -83,34 +94,23 @@ public final class MainActivity extends Activity {
         FrameLayout frame = new FrameLayout(this);
         page = new LinearLayout(this);
         page.setOrientation(LinearLayout.VERTICAL);
-        page.setBackgroundColor(BG);
         frame.addView(page, new FrameLayout.LayoutParams(-1,-1));
         root.addView(frame, new LinearLayout.LayoutParams(-1,0,1));
 
-        LinearLayout nav = new LinearLayout(this);
-        nav.setOrientation(LinearLayout.HORIZONTAL);
-        nav.setGravity(Gravity.CENTER);
-        nav.setPadding(dp(10),dp(8),dp(10),dp(10));
-        nav.setBackgroundColor(Color.rgb(11,18,28));
-
-        String[] labels = {"Library","Favorites","Settings"};
-        String[] glyphs = {"⌂","★","⚙"};
-        for(int i=0;i<3;i++){
-            final int tab=i;
-            LinearLayout item=lpRow();
-            item.setOrientation(LinearLayout.VERTICAL);
-            item.setGravity(Gravity.CENTER);
-            TextView icon=text(glyphs[i],20,TEXT);
-            icon.setGravity(Gravity.CENTER);
-            TextView label=text(labels[i],11,MUTED);
-            label.setGravity(Gravity.CENTER);
-            item.addView(icon,new LinearLayout.LayoutParams(-1,dp(25)));
-            item.addView(label,new LinearLayout.LayoutParams(-1,dp(20)));
-            item.setPadding(dp(4),0,dp(4),0);
-            item.setOnClickListener(v->{selectedTab=tab;if(tab==0)showLibrary();else if(tab==1)showFavorites();else showSettings();});
-            nav.addView(item,new LinearLayout.LayoutParams(0,dp(55),1));
-        }
-        root.addView(nav,new LinearLayout.LayoutParams(-1,dp(73)));
+        BottomNavigationView nav = new BottomNavigationView(this);
+        nav.setLabelVisibilityMode(BottomNavigationView.LABEL_VISIBILITY_LABELED);
+        nav.getMenu().add(0, 1, 0, "Library").setIcon(android.R.drawable.ic_menu_view);
+        nav.getMenu().add(0, 2, 1, "Favorites").setIcon(android.R.drawable.btn_star_big_off);
+        nav.getMenu().add(0, 3, 2, "Settings").setIcon(android.R.drawable.ic_menu_preferences);
+        nav.setOnItemSelectedListener(item -> {
+            selectedTab = item.getItemId() - 1;
+            if (item.getItemId() == 1) showLibrary();
+            else if (item.getItemId() == 2) showFavorites();
+            else showSettings();
+            return true;
+        });
+        nav.setSelectedItemId(1);
+        root.addView(nav, new LinearLayout.LayoutParams(-1, -2));
         setContentView(root);
     }
 
@@ -178,7 +178,7 @@ public final class MainActivity extends Activity {
     }
 
     private Button primaryButton(String label){
-        Button b=new Button(this);b.setText(label);b.setTextSize(12);b.setTextColor(Color.WHITE);b.setAllCaps(false);
+        com.google.android.material.button.MaterialButton b=new com.google.android.material.button.MaterialButton(this);b.setText(label);b.setTextSize(12);b.setTextColor(Color.WHITE);b.setAllCaps(false);
         b.setTypeface(Typeface.DEFAULT,Typeface.BOLD);b.setBackground(gradient(dp(14)));return b;
     }
 
