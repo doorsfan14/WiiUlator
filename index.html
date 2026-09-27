@@ -11,7 +11,7 @@
 <style>
 :root{color-scheme:dark;--wiiu-blue:#00a8e8;--wiiu-blue-dark:#087eae;--wiiu-cyan:#58d6ff;--bg:#050608;--surface:rgba(11,13,17,.78);--text:#f7f8fa;--muted:#9da3ae;--subtle:#686f7b;--line:rgba(255,255,255,.09);--strong:rgba(255,255,255,.15);--max:1180px}
 *{box-sizing:border-box}html{scroll-behavior:smooth;overflow-x:hidden}body{margin:0;background:var(--bg);color:var(--text);font-family:"Red Hat Display",system-ui,sans-serif;line-height:1.5;overflow-x:hidden;position:relative}a{color:inherit;text-decoration:none}
-.background-waves{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden;background:radial-gradient(900px 520px at 50% -120px,rgba(0,168,232,.20),transparent 68%),radial-gradient(700px 500px at 100% 45%,rgba(56,62,76,.12),transparent 70%),var(--bg)}.background-waves:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,6,8,.04),rgba(5,6,8,.38) 55%,rgba(5,6,8,.72));z-index:2}.wave{position:absolute;left:-10%;top:-8%;width:120%;height:116%;will-change:transform}.wave path{vector-effect:non-scaling-stroke}.wave-back{opacity:.12}.wave-mid{opacity:.17}.wave-front{opacity:.24}
+.background-waves{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden;background:radial-gradient(900px 520px at 50% -120px,rgba(0,168,232,.16),transparent 68%),radial-gradient(700px 500px at 100% 45%,rgba(56,62,76,.10),transparent 70%),var(--bg)}.background-waves:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,6,8,.10),rgba(5,6,8,.45) 55%,rgba(5,6,8,.72));z-index:2}.wave{position:absolute;left:-6%;top:8%;width:112%;height:92%;will-change:transform}.wave path{vector-effect:non-scaling-stroke}.wave-back{opacity:.08}.wave-mid{opacity:.12}.wave-front{opacity:.17}
 .page-load{animation:pageLoad 1.1s cubic-bezier(.16,1,.3,1) both}@keyframes pageLoad{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .container{width:min(calc(100% - 48px),var(--max));margin:auto}.nav{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.brand{font-size:20px;font-weight:800;letter-spacing:-.7px}.navlinks{display:flex;gap:28px;color:var(--muted);font-size:14px;font-weight:600}.navlinks a{transition:color .2s ease}.navlinks a:hover{color:var(--text)}
 .hero{position:relative;padding:110px 0 130px;text-align:center;min-height:650px;z-index:0}.hero .eyebrow,.hero h1,.hero .hero-copy,.hero .actions{opacity:0;animation:heroIn .85s cubic-bezier(.16,1,.3,1) forwards}.hero .eyebrow{animation-delay:.08s}.hero h1{animation-delay:.16s}.hero .hero-copy{animation-delay:.24s}.hero .actions{animation-delay:.32s}.eyebrow{display:inline-flex;align-items:center;gap:8px;color:#c7cbd3;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.dot{width:7px;height:7px;border-radius:50%;background:var(--wiiu-blue);box-shadow:0 0 18px rgba(0,168,232,.75)}@keyframes heroIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
@@ -23,15 +23,15 @@ h1{max-width:1000px;margin:20px auto 22px;font-size:clamp(64px,10vw,132px);line-
 .faq{display:grid;gap:10px;max-width:850px}.faq details{border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,rgba(0,168,232,.035),var(--surface));padding:0 22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}.faq summary{cursor:pointer;padding:20px 0;font-weight:700;list-style:none}.faq summary::-webkit-details-marker{display:none}.faq summary:after{content:"+";float:right;color:var(--subtle);font-size:20px;font-weight:400}.faq details[open] summary:after{content:"−"}.faq p{margin:0 0 20px;color:var(--muted);line-height:1.65}
 .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s cubic-bezier(.16,1,.3,1)}.reveal.visible{opacity:1;transform:none}.stagger>*{transition-delay:calc(var(--i,0) * 70ms)}
 footer{padding:34px 0 45px;border-top:1px solid var(--line);display:flex;justify-content:space-between;color:var(--subtle);font-size:13px}footer a:hover{color:var(--wiiu-blue)}
-@media(max-width:900px){.features{grid-template-columns:repeat(2,1fr)}}@media(max-width:760px){.container{width:min(calc(100% - 32px),var(--max))}.navlinks{gap:14px}.navlinks a:nth-child(1){display:none}.hero{padding:80px 0 100px;min-height:570px}h1{font-size:clamp(58px,18vw,92px)}.hero-copy{font-size:17px}.background-waves .wave{left:-24%;width:148%;top:-4%;height:108%}.features,.status{grid-template-columns:1fr}.section{padding:75px 0}.feature{min-height:190px}.feature h3{margin-top:40px}footer{gap:16px;flex-direction:column}}
+@media(max-width:900px){.features{grid-template-columns:repeat(2,1fr)}}@media(max-width:760px){.container{width:min(calc(100% - 32px),var(--max))}.navlinks{gap:14px}.navlinks a:nth-child(1){display:none}.hero{padding:80px 0 100px;min-height:570px}h1{font-size:clamp(58px,18vw,92px)}.hero-copy{font-size:17px}.background-waves .wave{left:-8%;width:116%;top:10%;height:88%}.features,.status{grid-template-columns:1fr}.section{padding:75px 0}.feature{min-height:190px}.feature h3{margin-top:40px}footer{gap:16px;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.page-load{animation:none}*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}.reveal{opacity:1;transform:none}.hero .eyebrow,.hero h1,.hero .hero-copy,.hero .actions{opacity:1;animation:none}.wave{transform:none!important}}
 </style>
 </head>
 <body>
 <div class="background-waves" aria-hidden="true">
-<svg class="wave wave-back" viewBox="0 0 1440 1100" preserveAspectRatio="none"><path d="M0 720 C180 470 330 910 535 650 S850 360 1055 650 S1275 900 1440 540 V1100 H0Z" fill="#087eae"/></svg>
-<svg class="wave wave-mid" viewBox="0 0 1440 1100" preserveAspectRatio="none"><path d="M0 790 C190 560 340 980 555 720 S860 450 1065 710 S1290 930 1440 650 V1100 H0Z" fill="#00a8e8"/></svg>
-<svg class="wave wave-front" viewBox="0 0 1440 1100" preserveAspectRatio="none"><path d="M0 850 C180 650 330 1050 525 800 S835 560 1045 790 S1270 990 1440 730 V1100 H0Z" fill="#58d6ff"/></svg>
+<svg class="wave wave-back" viewBox="0 0 1440 900" preserveAspectRatio="none"><path d="M0 610 C120 565 235 655 360 610 S600 565 720 610 S960 655 1080 610 S1320 565 1440 610 V900 H0Z" fill="#087eae"/></svg>
+<svg class="wave wave-mid" viewBox="0 0 1440 900" preserveAspectRatio="none"><path d="M0 670 C120 625 235 715 360 670 S600 625 720 670 S960 715 1080 670 S1320 625 1440 670 V900 H0Z" fill="#00a8e8"/></svg>
+<svg class="wave wave-front" viewBox="0 0 1440 900" preserveAspectRatio="none"><path d="M0 730 C120 685 235 775 360 730 S600 685 720 730 S960 775 1080 730 S1320 685 1440 730 V900 H0Z" fill="#58d6ff"/></svg>
 </div>
 <div class="page-load">
 <header class="container nav">
@@ -103,8 +103,8 @@ function parallax(){
 if(reduce)return;
 const scroll=window.scrollY;
 waves.forEach((wave,index)=>{
-const speed=[0.035,0.06,0.09][index];
-const drift=Math.sin((scroll*.003)+(index*1.7))*18;
+const speed=[0.018,0.028,0.04][index];
+const drift=Math.sin((scroll*.0025)+(index*1.7))*8;
 wave.style.transform="translate3d("+drift.toFixed(2)+"px,"+(-scroll*speed).toFixed(2)+"px,0)";
 });
 ticking=false;
