@@ -3,6 +3,12 @@ import UIKit
 import Darwin
 import UniformTypeIdentifiers
 
+
+private enum WiiUlatorBuildInfo {
+    static let version = "1.0"
+    static let identifier = "26W001"
+}
+
 struct ContentView: View {
     @State private var selectedTab: Tab = .library
 
@@ -636,6 +642,12 @@ struct SettingsView: View {
                     } label: {
                         Label("System", systemImage: "gearshape")
                     }
+
+                    NavigationLink {
+                        WiiUSystemUpdateView()
+                    } label: {
+                        Label("System Update", systemImage: "arrow.down.circle")
+                    }
                 }
 
                 Section("Developer") {
@@ -674,12 +686,13 @@ struct WiiUSystemUpdateView: View {
     @State private var status = "Not checked"
     @State private var isChecking = false
     @State private var availableTitles = 0
+    @State private var latestVersions: [WiiUSystemUpdater.TitleVersion] = []
 
     private let regions = ["USA", "EUR", "JPN"]
 
     var body: some View {
         Form {
-            Section("Region") {
+            Section("Wii U Region") {
                 Picker("Region", selection: $region) {
                     ForEach(regions, id: \.self) { value in
                         Text(value).tag(value)
@@ -687,12 +700,12 @@ struct WiiUSystemUpdateView: View {
                 }
             }
 
-            Section("Online System Update") {
+            Section("Nintendo Update Service") {
                 Button {
                     checkForUpdate()
                 } label: {
                     HStack {
-                        Label("Perform Online System Update", systemImage: "arrow.down.circle")
+                        Label("Check for Updates", systemImage: "arrow.down.circle")
                         Spacer()
                         if isChecking {
                             ProgressView()
@@ -700,20 +713,42 @@ struct WiiUSystemUpdateView: View {
                     }
                 }
                 .disabled(isChecking)
+
+                LabeledContent("Source", value: "Nintendo Wii U NUS")
+                LabeledContent("Build", value: WiiUlatorBuildInfo.identifier)
             }
 
             Section("Status") {
-                LabeledContent("Server", value: "Nintendo Wii U NUS")
                 LabeledContent("Region", value: region)
                 LabeledContent("Result", value: status)
 
                 if availableTitles > 0 {
-                    LabeledContent("System Titles", value: String(availableTitles))
+                    LabeledContent("Title Entries", value: String(availableTitles))
+                }
+            }
+
+            if !latestVersions.isEmpty {
+                Section("Nintendo Title Versions") {
+                    ForEach(latestVersions.prefix(12)) { title in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(title.titleID)
+                                .font(.system(.subheadline, design: .monospaced))
+                            Text("Version \(title.version)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    if latestVersions.count > 12 {
+                        Text("\(latestVersions.count - 12) more title entries received.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
 
             Section {
-                Text("WiiUlator does not ship Nintendo system software. This check only contacts the Wii U update service and reads update metadata. Installing proprietary system contents will require a separate system-software import/runtime implementation.")
+                Text("Nintendo documents Wii U system updates as Internet-delivered updates, with version 5.5.6 U listed as the latest system-menu release. WiiUlator queries Nintendo's Wii U NUS service for update metadata. Proprietary system software is not bundled with WiiUlator and is not silently copied into the app.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -724,74 +759,136 @@ struct WiiUSystemUpdateView: View {
 
     private func checkForUpdate() {
         isChecking = true
-        status = "Checking..."
+        status = "Contacting Nintendo..."
         availableTitles = 0
+        latestVersions = []
 
         Task {
             let result = await WiiUSystemUpdater.check(region: region)
             await MainActor.run {
                 isChecking = false
                 status = result.message
-                availableTitles = result.titleCount
+                availableTitles = result.titles.count
+                latestVersions = result.titles
             }
         }
     }
 }
 
 private enum WiiUSystemUpdater {
+    struct TitleVersion: Identifiable {
+        let titleID: String
+        let version: Int
+
+        var id: String {
+            "\(titleID)-\(version)"
+        }
+    }
+
     struct Result {
-        let titleCount: Int
+        let titles: [TitleVersion]
         let message: String
     }
 
     static func check(region: String) async -> Result {
         guard let url = URL(string: "https://nus.wup.shop.nintendo.net/nus/services/NetUpdateSOAP") else {
-            return Result(titleCount: 0, message: "Invalid update service URL")
+            return Result(titles: [], message: "Invalid Nintendo update service URL")
         }
 
-        let soapAction = "urn:nus.wsapi.broadon.com/GetSystemUpdate"
+        let countryCode: String
+        switch region {
+        case "EUR":
+            countryCode = "EU"
+        case "JPN":
+            countryCode = "JP"
+        default:
+            countryCode = "US"
+        }
+
+        let messageID = UUID().uuidString
         let body = """
-        <?xml version="1.0" encoding="utf-8"?>
-        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-          <soap:Body>
-            <GetSystemUpdate xmlns="urn:nus.wsapi.broadon.com">
-              <Version>0005001010000000</Version>
-              <Region>\(region)</Region>
-            </GetSystemUpdate>
-          </soap:Body>
-        </soap:Envelope>
+        <?xml version="1.0" encoding="UTF-8"?>
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <soapenv:Body>
+            <GetSystemUpdateRequest xmlns="urn:nus.wsapi.broadon.com">
+              <Version>1.0</Version>
+              <MessageId>\(messageID)</MessageId>
+              <DeviceId>0</DeviceId>
+              <RegionId>\(region)</RegionId>
+              <CountryCode>\(countryCode)</CountryCode>
+              <Attribute>1</Attribute>
+              <AuditData></AuditData>
+            </GetSystemUpdateRequest>
+          </soapenv:Body>
+        </soapenv:Envelope>
         """
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.httpBody = body.data(using: .utf8)
-        request.setValue(soapAction, forHTTPHeaderField: "SOAPAction")
+        request.setValue(""urn:nus.wsapi.broadon.com/GetSystemUpdate"", forHTTPHeaderField: "SOAPAction")
         request.setValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
-        request.setValue("WiiUlator/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("wii libnup/1.0", forHTTPHeaderField: "User-Agent")
+        request.timeoutInterval = 20
 
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
+
             guard let http = response as? HTTPURLResponse else {
-                return Result(titleCount: 0, message: "Invalid server response")
+                return Result(titles: [], message: "Invalid Nintendo server response")
             }
 
             guard (200..<300).contains(http.statusCode) else {
-                return Result(titleCount: 0, message: "Server returned HTTP \(http.statusCode)")
+                return Result(titles: [], message: "Nintendo server returned HTTP \(http.statusCode)")
             }
 
-            let text = String(decoding: data, as: UTF8.self)
-            let count = text.components(separatedBy: "<Title>").count - 1
+            let xml = String(decoding: data, as: UTF8.self)
+            let errorCode = firstTagValue("ErrorCode", in: xml)
 
-            if count > 0 {
-                return Result(
-                    titleCount: count,
-                    message: "Update metadata received"
-                )
+            if let errorCode, errorCode != "0" {
+                return Result(titles: [], message: "Nintendo NUS error \(errorCode)")
             }
 
-            return Result(titleCount: 0, message: "No update metadata returned")
+            let titleIDs = allTagValues("TitleId", in: xml)
+            let versions = allTagValues("Version", in: xml).dropFirst()
+
+            let titles = zip(titleIDs, versions).compactMap { titleID, versionText -> TitleVersion? in
+                guard let version = Int(versionText) else { return nil }
+                return TitleVersion(titleID: titleID, version: version)
+            }
+
+            guard !titles.isEmpty else {
+                return Result(titles: [], message: "Nintendo returned no system-title metadata")
+            }
+
+            return Result(
+                titles: titles,
+                message: "Nintendo update metadata received"
+            )
         } catch {
-            return Result(titleCount: 0, message: "Connection failed")
+            return Result(titles: [], message: "Connection to Nintendo NUS failed")
+        }
+    }
+
+    private static func firstTagValue(_ tag: String, in xml: String) -> String? {
+        let values = allTagValues(tag, in: xml)
+        return values.first
+    }
+
+    private static func allTagValues(_ tag: String, in xml: String) -> [String] {
+        let pattern = "<(?:[A-Za-z0-9_]+:)?\(tag)>(.*?)</(?:[A-Za-z0-9_]+:)?\(tag)>"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]) else {
+            return []
+        }
+
+        let range = NSRange(xml.startIndex..<xml.endIndex, in: xml)
+        return regex.matches(in: xml, range: range).compactMap { match in
+            guard let valueRange = Range(match.range(at: 1), in: xml) else {
+                return nil
+            }
+            return String(xml[valueRange]).trimmingCharacters(in: .whitespacesAndNewlines)
         }
     }
 }
@@ -1195,7 +1292,8 @@ struct AboutView: View {
     var body: some View {
         List {
             Section("WiiUlator") {
-                LabeledContent("Version", value: "1.0")
+                LabeledContent("Version", value: WiiUlatorBuildInfo.version)
+                LabeledContent("Build Identifier", value: WiiUlatorBuildInfo.identifier)
                 LabeledContent("Platform", value: "iOS & iPadOS")
                 LabeledContent("Minimum iOS", value: "16.0")
             }
