@@ -234,6 +234,7 @@
                 IPHONEOS_DEPLOYMENT_TARGET = 16.0;
                 MARKETING_VERSION = 1.0;
                 PRODUCT_BUNDLE_IDENTIFIER = "net.teamceleste.wiiulator";
+                CODE_SIGN_ENTITLEMENTS = WiiUlator/WiiUlator.entitlements;
                 PRODUCT_NAME = WiiUlator;
                 SDKROOT = iphoneos;
                 SWIFT_VERSION = 5.0;
