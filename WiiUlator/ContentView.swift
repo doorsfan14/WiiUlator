@@ -343,6 +343,7 @@ struct DemoGameView: View {
 
 struct EmulatorVideoView: View {
     @ObservedObject var session: EmulatorSession
+    @AppStorage("displayAspectRatio") private var displayAspectRatio = "16:9"
 
     private var isFailed: Bool {
         if case .failed = session.state {
@@ -998,6 +999,7 @@ struct GraphicsSettingsView: View {
     @AppStorage("graphicsBackend") private var graphicsBackend = "Metal"
     @AppStorage("graphicsQuality") private var graphicsQuality = "Auto"
     @AppStorage("gameResolution") private var gameResolution = "Native"
+    @AppStorage("displayAspectRatio") private var displayAspectRatio = "16:9"
     @AppStorage("performanceMode") private var performanceMode = false
     @AppStorage("thirtyFPSFullSpeed") private var thirtyFPSFullSpeed = true
 
@@ -1008,6 +1010,17 @@ struct GraphicsSettingsView: View {
                     Text("Metal").tag("Metal")
                     Text("Vulkan (Experimental)").tag("Vulkan")
                 }
+            }
+
+            Section("Display") {
+                Picker("Aspect Ratio", selection: $displayAspectRatio) {
+                    Text("16:9").tag("16:9")
+                    Text("4:3").tag("4:3")
+                }
+
+                Text("Wii U games normally use 16:9. Select 4:3 for games or content designed for that display shape.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
 
             Section("Game Resolution") {
