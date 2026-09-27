@@ -19,6 +19,7 @@
         A10000000000000000000004 = { isa = PBXBuildFile; fileRef = A10000000000000000000015; };
         A10000000000000000000005 = { isa = PBXBuildFile; fileRef = A10000000000000000000016; };
         A10000000000000000000006 = { isa = PBXBuildFile; fileRef = A10000000000000000000018; };
+        A10000000000000000000007 = { isa = PBXBuildFile; fileRef = A10000000000000000000019; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +40,7 @@
         A10000000000000000000016 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine/PowerPCCPU.swift; sourceTree = "<group>"; };
         A10000000000000000000017 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine/EmulatorCoreTests.swift; sourceTree = "<group>"; };
         A10000000000000000000018 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine/WiiUExecutableLoader.swift; sourceTree = "<group>"; };
+        A10000000000000000000019 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine/WiiUGamePad.swift; sourceTree = "<group>"; };
         A10000000000000000000013 = {
             isa = PBXFileReference;
             explicitFileType = wrapper.application;
@@ -68,6 +70,7 @@
                 A10000000000000000000015,
                 A10000000000000000000016,
                 A10000000000000000000018,
+                A10000000000000000000019,
             );
             path = WiiUlator;
             sourceTree = "<group>";
@@ -160,6 +163,7 @@
                 A10000000000000000000004,
                 A10000000000000000000005,
                 A10000000000000000000006,
+                A10000000000000000000007,
             );
             runOnlyForDeploymentPostprocessing = 0;
         };
