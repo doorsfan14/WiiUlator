@@ -6,6 +6,7 @@ struct EmulatorMemoryRegion {
     let size: UInt32
     let readable: Bool
     let writable: Bool
+    let executable: Bool
 
     var end: UInt32 {
         start &+ size
@@ -17,46 +18,74 @@ struct EmulatorMemoryRegion {
 }
 
 final class EmulatorMemory {
-    let size: Int
-    private var storage: [UInt8]
+    static let pageSize = 0x1000
+
     let regions: [EmulatorMemoryRegion]
+    private var pages: [UInt32: [UInt8]] = [:]
 
     init(size: Int = 64 * 1024 * 1024) {
-        precondition(size > 0)
-        self.size = size
-        self.storage = Array(repeating: 0, count: size)
+        _ = size
 
         regions = [
             EmulatorMemoryRegion(
-                name: "Homebrew App",
-                start: 0x02000000,
-                size: UInt32(min(size, 0x01000000)),
+                name: "Codegen / JIT",
+                start: 0x01800000,
+                size: 0x00020000,
                 readable: true,
-                writable: true
+                writable: true,
+                executable: true
+            ),
+            EmulatorMemoryRegion(
+                name: "Application Code",
+                start: 0x02000000,
+                size: 0x0E000000,
+                readable: true,
+                writable: true,
+                executable: true
             ),
             EmulatorMemoryRegion(
                 name: "Application Data",
                 start: 0x10000000,
-                size: 0x01000000,
+                size: 0x52000000,
                 readable: true,
-                writable: true
+                writable: true,
+                executable: false
+            ),
+            EmulatorMemoryRegion(
+                name: "Hardware",
+                start: 0xE0000000,
+                size: 0x04000000,
+                readable: true,
+                writable: true,
+                executable: false
             )
         ]
     }
 
     func reset() {
-        storage = Array(repeating: 0, count: size)
+        pages.removeAll(keepingCapacity: true)
     }
 
     func load(_ data: [UInt8], at address: UInt32) {
-        precondition(Int(address) + data.count <= size)
+        guard !data.isEmpty else { return }
+
         for (offset, byte) in data.enumerated() {
-            storage[Int(address) + offset] = byte
+            write8(at: address &+ UInt32(offset), value: byte)
+        }
+    }
+
+    func zero(_ count: UInt32, at address: UInt32) {
+        guard count > 0 else { return }
+
+        for offset in 0..<count {
+            write8(at: address &+ offset, value: 0)
         }
     }
 
     func read8(at address: UInt32) -> UInt8 {
-        storage[index(for: address)]
+        let page = pageNumber(for: address)
+        guard let storage = pages[page] else { return 0 }
+        return storage[pageOffset(for: address)]
     }
 
     func read16(at address: UInt32) -> UInt16 {
@@ -72,7 +101,11 @@ final class EmulatorMemory {
     }
 
     func write8(at address: UInt32, value: UInt8) {
-        storage[index(for: address)] = value
+        let page = pageNumber(for: address)
+        if pages[page] == nil {
+            pages[page] = Array(repeating: 0, count: Self.pageSize)
+        }
+        pages[page]![pageOffset(for: address)] = value
     }
 
     func write16(at address: UInt32, value: UInt16) {
@@ -87,7 +120,15 @@ final class EmulatorMemory {
         write8(at: address &+ 3, value: UInt8(value & 0xff))
     }
 
-    private func index(for address: UInt32) -> Int {
-        Int(address) % size
+    func contains(_ address: UInt32) -> Bool {
+        regions.contains { $0.contains(address) }
+    }
+
+    private func pageNumber(for address: UInt32) -> UInt32 {
+        address >> 12
+    }
+
+    private func pageOffset(for address: UInt32) -> Int {
+        Int(address & 0xFFF)
     }
 }
