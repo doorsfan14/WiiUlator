@@ -7,6 +7,8 @@ final class PowerPCCPU {
     var linkRegister: UInt32 = 0
     var countRegister: UInt32 = 0
     var xer: UInt32 = 0
+    private(set) var lastInstruction: UInt32 = 0
+    private(set) var unsupportedInstruction: UInt32?
 
     func reset() {
         generalPurposeRegisters = [UInt32](repeating: 0, count: 32)
@@ -15,11 +17,15 @@ final class PowerPCCPU {
         linkRegister = 0
         countRegister = 0
         xer = 0
+        lastInstruction = 0
+        unsupportedInstruction = nil
     }
 
     func step(memory: EmulatorMemory) {
         let currentPC = programCounter
         let instruction = memory.read32(at: currentPC)
+        lastInstruction = instruction
+        unsupportedInstruction = nil
         programCounter = currentPC &+ 4
         execute(instruction, currentPC: currentPC, memory: memory)
 
@@ -278,8 +284,11 @@ final class PowerPCCPU {
     }
 
     private func signExtend26(_ value: UInt32) -> Int32 {
-        let shifted = value | 0xFC000000
-        return Int32(bitPattern: shifted)
+        let raw = value & 0x03FFFFFC
+        if (raw & 0x02000000) != 0 {
+            return Int32(bitPattern: raw | 0xFC000000)
+        }
+        return Int32(raw)
     }
 
     private func branchCondition(bo: UInt8, bi: UInt8) -> Bool {
