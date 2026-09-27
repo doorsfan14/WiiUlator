@@ -660,7 +660,135 @@ struct SettingsView: View {
     }
 }
 
-struct DebugSettingsView: View {
+
+
+struct WiiUSystemUpdateView: View {
+    @State private var region = "USA"
+    @State private var status = "Not checked"
+    @State private var isChecking = false
+    @State private var availableTitles = 0
+
+    private let regions = ["USA", "EUR", "JPN"]
+
+    var body: some View {
+        Form {
+            Section("Region") {
+                Picker("Region", selection: $region) {
+                    ForEach(regions, id: \.self) { value in
+                        Text(value).tag(value)
+                    }
+                }
+            }
+
+            Section("Online System Update") {
+                Button {
+                    checkForUpdate()
+                } label: {
+                    HStack {
+                        Label("Perform Online System Update", systemImage: "arrow.down.circle")
+                        Spacer()
+                        if isChecking {
+                            ProgressView()
+                        }
+                    }
+                }
+                .disabled(isChecking)
+            }
+
+            Section("Status") {
+                LabeledContent("Server", value: "Nintendo Wii U NUS")
+                LabeledContent("Region", value: region)
+                LabeledContent("Result", value: status)
+
+                if availableTitles > 0 {
+                    LabeledContent("System Titles", value: String(availableTitles))
+                }
+            }
+
+            Section {
+                Text("WiiUlator does not ship Nintendo system software. This check only contacts the Wii U update service and reads update metadata. Installing proprietary system contents will require a separate system-software import/runtime implementation.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .navigationTitle("System Update")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func checkForUpdate() {
+        isChecking = true
+        status = "Checking..."
+        availableTitles = 0
+
+        Task {
+            let result = await WiiUSystemUpdater.check(region: region)
+            await MainActor.run {
+                isChecking = false
+                status = result.message
+                availableTitles = result.titleCount
+            }
+        }
+    }
+}
+
+private enum WiiUSystemUpdater {
+    struct Result {
+        let titleCount: Int
+        let message: String
+    }
+
+    static func check(region: String) async -> Result {
+        guard let url = URL(string: "https://nus.wup.shop.nintendo.net/nus/services/NetUpdateSOAP") else {
+            return Result(titleCount: 0, message: "Invalid update service URL")
+        }
+
+        let soapAction = "urn:nus.wsapi.broadon.com/GetSystemUpdate"
+        let body = """
+        <?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body>
+            <GetSystemUpdate xmlns="urn:nus.wsapi.broadon.com">
+              <Version>0005001010000000</Version>
+              <Region>\(region)</Region>
+            </GetSystemUpdate>
+          </soap:Body>
+        </soap:Envelope>
+        """
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = body.data(using: .utf8)
+        request.setValue(soapAction, forHTTPHeaderField: "SOAPAction")
+        request.setValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        request.setValue("WiiUlator/1.0", forHTTPHeaderField: "User-Agent")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse else {
+                return Result(titleCount: 0, message: "Invalid server response")
+            }
+
+            guard (200..<300).contains(http.statusCode) else {
+                return Result(titleCount: 0, message: "Server returned HTTP \(http.statusCode)")
+            }
+
+            let text = String(decoding: data, as: UTF8.self)
+            let count = text.components(separatedBy: "<Title>").count - 1
+
+            if count > 0 {
+                return Result(
+                    titleCount: count,
+                    message: "Update metadata received"
+                )
+            }
+
+            return Result(titleCount: 0, message: "No update metadata returned")
+        } catch {
+            return Result(titleCount: 0, message: "Connection failed")
+        }
+    }
+}
+\nstruct DebugSettingsView: View {
     @AppStorage("debugOverlayEnabled") private var debugOverlayEnabled = false
     @AppStorage("debugLoggingEnabled") private var debugLoggingEnabled = false
 
