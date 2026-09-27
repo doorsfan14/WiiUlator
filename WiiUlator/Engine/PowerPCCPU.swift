@@ -112,6 +112,13 @@ final class PowerPCCPU {
             generalPurposeRegisters[ra] = value
             updateCR0(value)
 
+        case 10: // cmplwi
+            let bf = Int((instruction >> 23) & 0x7)
+            let ra = Int((instruction >> 16) & 0x1f)
+            let lhs = generalPurposeRegisters[ra]
+            let rhs = instruction & 0xffff
+            updateCRField(bf, lhs < rhs ? 0x8 : (lhs > rhs ? 0x4 : 0x2))
+
         case 11: // cmpwi
             let bf = Int((instruction >> 23) & 0x7)
             let ra = Int((instruction >> 16) & 0x1f)
@@ -242,22 +249,6 @@ final class PowerPCCPU {
 
         case 28: // and
             generalPurposeRegisters[ra] = generalPurposeRegisters[rs] & generalPurposeRegisters[rb]
-
-        case 339: // mflr
-            generalPurposeRegisters[ra] = linkRegister
-
-        case 467: // mtspr
-            let spr = ((instruction >> 16) & 0x1f) | (((instruction >> 11) & 0x1f) << 5)
-            switch spr {
-            case 8:
-                countRegister = generalPurposeRegisters[rs]
-            case 9:
-                linkRegister = generalPurposeRegisters[rs]
-            case 1:
-                xer = generalPurposeRegisters[rs]
-            default:
-                break
-            }
 
         case 19: // mfcr
             generalPurposeRegisters[ra] = conditionRegister
