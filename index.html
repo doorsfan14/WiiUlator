@@ -9,13 +9,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{color-scheme:dark;--bg:#050608;--surface:#0b0d11;--surface2:#101319;--text:#f7f8fa;--muted:#9da3ae;--subtle:#686f7b;--line:rgba(255,255,255,.09);--strong:rgba(255,255,255,.15);--max:1180px}
+:root{color-scheme:dark;--bg:#050608;--surface:#0b0d11;--text:#f7f8fa;--muted:#9da3ae;--subtle:#686f7b;--line:rgba(255,255,255,.09);--strong:rgba(255,255,255,.15);--max:1180px}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(900px 520px at 50% -120px,rgba(103,115,140,.23),transparent 68%),radial-gradient(700px 500px at 100% 45%,rgba(56,62,76,.12),transparent 70%),var(--bg);color:var(--text);font-family:"Red Hat Display",system-ui,sans-serif;line-height:1.5}a{color:inherit;text-decoration:none}
 .container{width:min(calc(100% - 48px),var(--max));margin:auto}.nav{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.brand{font-size:20px;font-weight:800;letter-spacing:-.7px}.navlinks{display:flex;gap:28px;color:var(--muted);font-size:14px;font-weight:600}.navlinks a:hover{color:var(--text)}
 .hero{padding:110px 0 90px;text-align:center}.eyebrow{display:inline-flex;align-items:center;gap:8px;color:#c7cbd3;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.dot{width:7px;height:7px;border-radius:50%;background:#b8bec9;box-shadow:0 0 18px rgba(220,225,235,.65)}h1{max-width:900px;margin:20px auto 22px;font-size:clamp(64px,10vw,132px);line-height:.88;letter-spacing:-.075em;font-weight:800}h1 span{display:block;color:#aeb4bf}.hero-copy{max-width:650px;margin:0 auto 34px;color:var(--muted);font-size:19px;line-height:1.65}.actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px;padding:0 20px;border-radius:13px;font-size:14px;font-weight:700;border:1px solid var(--strong)}.primary{background:#f5f6f8;color:#08090b;border-color:#f5f6f8;cursor:not-allowed}.secondary{background:rgba(255,255,255,.035)}.soon{font-size:10px;letter-spacing:.06em;padding:3px 6px;border-radius:5px;background:#dfe1e5;color:#565b65}
-.showcase{position:relative;min-height:440px;border:1px solid var(--line);border-radius:30px;overflow:hidden;background:linear-gradient(145deg,#11141a,#08090c);box-shadow:0 40px 120px rgba(0,0,0,.35)}.showcase:before,.showcase:after{content:"";position:absolute;border:1px solid rgba(255,255,255,.055);transform:rotate(-8deg);border-radius:24px}.showcase:before{inset:55px 13%;}.showcase:after{inset:95px 20%;transform:rotate(7deg)}.showcase-content{position:absolute;inset:0;display:grid;place-items:center;text-align:center}.showcase-title{font-size:clamp(34px,6vw,68px);font-weight:800;letter-spacing:-.06em}.showcase-meta{margin-top:12px;color:var(--subtle);font-size:12px;letter-spacing:.18em;text-transform:uppercase}
+.showcase{position:relative;min-height:440px;border:1px solid var(--line);border-radius:30px;overflow:hidden;background:linear-gradient(145deg,#11141a,#08090c);box-shadow:0 40px 120px rgba(0,0,0,.35)}.showcase:before,.showcase:after{content:"";position:absolute;border:1px solid rgba(255,255,255,.055);transform:rotate(-8deg);border-radius:24px}.showcase:before{inset:55px 13%}.showcase:after{inset:95px 20%;transform:rotate(7deg)}.showcase-content{position:absolute;inset:0;display:grid;place-items:center;text-align:center}.showcase-title{font-size:clamp(34px,6vw,68px);font-weight:800;letter-spacing:-.06em}.showcase-meta{margin-top:12px;color:var(--subtle);font-size:12px;letter-spacing:.18em;text-transform:uppercase}
 .section{padding:110px 0}.section-label{color:var(--subtle);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px}.section h2{max-width:700px;margin:0;font-size:clamp(38px,5vw,62px);line-height:1;letter-spacing:-.055em}.section-intro{max-width:600px;color:var(--muted);font-size:18px;margin:20px 0 44px}.features{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.feature{padding:30px;min-height:220px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.012))}.number{color:var(--subtle);font-size:12px;font-weight:700}.feature h3{margin:55px 0 9px;font-size:22px;letter-spacing:-.025em}.feature p{margin:0;color:var(--muted);font-size:15px;line-height:1.6}
-.status{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}.status-card{padding:34px;border:1px solid var(--line);border-radius:22px;background:var(--surface)}.status-card h3{margin:0 0 10px;font-size:25px}.status-card p{margin:0;color:var(--muted);line-height:1.65}.status-card .button{margin-top:26px}.disabled-note{color:var(--subtle);font-size:12px;margin-top:12px}
+.status{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}.status-card{padding:34px;border:1px solid var(--line);border-radius:22px;background:var(--surface)}.status-card h3{margin:0 0 10px;font-size:25px}.status-card p{margin:0;color:var(--muted);line-height:1.65}.status-card .button{margin-top:26px}
 footer{padding:34px 0 45px;border-top:1px solid var(--line);display:flex;justify-content:space-between;color:var(--subtle);font-size:13px}footer a:hover{color:var(--text)}
 @media(max-width:760px){.container{width:min(calc(100% - 32px),var(--max))}.navlinks{gap:14px}.navlinks a:nth-child(1){display:none}.hero{padding:80px 0 65px}h1{font-size:clamp(58px,18vw,92px)}.hero-copy{font-size:17px}.showcase{min-height:330px}.features,.status{grid-template-columns:1fr}.section{padding:75px 0}.feature{min-height:190px}.feature h3{margin-top:40px}footer{gap:16px;flex-direction:column}}
 </style>
@@ -29,9 +29,9 @@ footer{padding:34px 0 45px;border-top:1px solid var(--line);display:flex;justify
 </header>
 <main>
 <section class="container hero">
-<div class="eyebrow"><span class="dot"></span> In active development</div>
-<h1>Wii U.<span>Reimagined.</span></h1>
-<p class="hero-copy">A Wii U emulator for iOS and iPadOS, built by Team Celeste. Designed around Apple hardware, Metal, and a real Wii U GamePad experience.</p>
+<div class="eyebrow"><span class="dot"></span> In development</div>
+<h1>Wii U.<span>On iOS.</span></h1>
+<p class="hero-copy">WiiUlator is a Wii U emulator for iOS and iPadOS by Team Celeste. It's still being built, but the goal is simple: Wii U games on Apple devices.</p>
 <div class="actions">
 <a class="button primary" href="#" aria-disabled="true" onclick="return false">Download <span class="soon">SOON</span></a>
 <a class="button secondary" href="https://github.com/habibbatista/WiiUlator">View source</a>
@@ -43,22 +43,22 @@ footer{padding:34px 0 45px;border-top:1px solid var(--line);display:flex;justify
 </div>
 </section>
 <section class="container section" id="features">
-<div class="section-label">The idea</div>
-<h2>Built for the platform.</h2>
-<p class="section-intro">Not a desktop emulator squeezed onto a phone. WiiUlator is being designed around the hardware and interaction model of Apple devices from the ground up.</p>
+<div class="section-label">What we're building</div>
+<h2>Made for Apple devices.</h2>
+<p class="section-intro">The project is being built with iOS and iPadOS in mind, with Metal and Wii U GamePad controls planned as part of the emulator.</p>
 <div class="features">
-<article class="feature"><div class="number">01</div><h3>Metal first</h3><p>A graphics architecture centered on Apple's Metal API, with portability kept in mind for future backends.</p></article>
-<article class="feature"><div class="number">02</div><h3>GamePad included</h3><p>Touch controls and the Wii U GamePad are part of the emulator experience, not an afterthought.</p></article>
-<article class="feature"><div class="number">03</div><h3>ARM64 focused</h3><p>A native-minded architecture built around modern Apple silicon and the ARM64 instruction set.</p></article>
+<article class="feature"><div class="number">01</div><h3>Metal</h3><p>Metal is the main graphics backend we're building around.</p></article>
+<article class="feature"><div class="number">02</div><h3>GamePad</h3><p>Touch controls are being made around the Wii U GamePad layout.</p></article>
+<article class="feature"><div class="number">03</div><h3>ARM64</h3><p>The emulator is being developed for the ARM64 hardware used by modern Apple devices.</p></article>
 </div>
 </section>
 <section class="container section" id="status">
 <div class="section-label">Status</div>
-<h2>Early. Real. Still being built.</h2>
-<p class="section-intro">The emulator core and frontend are under active development. There is no public release yet.</p>
+<h2>Still in development.</h2>
+<p class="section-intro">There isn't a public release yet. We're working on the emulator core, graphics, controls, and the rest of the Wii U system.</p>
 <div class="status">
-<div class="status-card"><h3>No public download yet.</h3><p>The download button is intentionally disabled until WiiUlator has a usable release worth installing.</p><a class="button primary" href="#" aria-disabled="true" onclick="return false">Download <span class="soon">COMING SOON</span></a></div>
-<div class="status-card"><h3>Open source.</h3><p>WiiUlator is developed by Team Celeste and released under GPL-3.0-or-later, while third-party and proprietary software remain under their respective licenses.</p></div>
+<div class="status-card"><h3>No download yet.</h3><p>The download button is disabled for now. It'll work when there's a release ready.</p><a class="button primary" href="#" aria-disabled="true" onclick="return false">Download <span class="soon">COMING SOON</span></a></div>
+<div class="status-card"><h3>Open source.</h3><p>WiiUlator is developed by Team Celeste and released under GPL-3.0-or-later.</p></div>
 </div>
 </section>
 </main>
