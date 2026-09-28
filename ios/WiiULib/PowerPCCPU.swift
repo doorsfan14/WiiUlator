@@ -206,7 +206,9 @@ public final class PowerPCCPU {
         case 476:
             registers[a] = ~(registers[s] & registers[b])
         case 491:
-            if registers[b] != 0 { registers[a] = UInt32(bitPattern: Int32(bitPattern: registers[s]) / Int32(bitPattern: registers[b])) }
+            if registers[b] != 0 && !(registers[s] == 0x80000000 && registers[b] == 0xFFFFFFFF) {
+                registers[a] = UInt32(bitPattern: Int32(bitPattern: registers[s]) / Int32(bitPattern: registers[b]))
+            }
         case 266:
             registers[a] = registers[s] &+ registers[b]
         case 40:
@@ -225,9 +227,19 @@ public final class PowerPCCPU {
         case 662:
             let address = base(a) &+ registers[b]
             memory.write32(address, registers[s].byteSwapped)
+        case 16:
+            if conditionMet(instruction) { pc = linkRegister & ~3 }
+            if (instruction & 1) != 0 { linkRegister = pc }
+        case 528:
+            if conditionMet(instruction) { pc = countRegister & ~3 }
         case 339:
             let spr = ((instruction >> 16) & 31) | (((instruction >> 11) & 31) << 5)
             registers[a] = spr == 1 ? xer : spr == 8 ? linkRegister : spr == 9 ? countRegister : 0
+        case 467:
+            let spr = ((instruction >> 16) & 31) | (((instruction >> 11) & 31) << 5)
+            if spr == 8 { linkRegister = registers[s] }
+            else if spr == 9 { countRegister = registers[s] }
+            else if spr == 1 { xer = registers[s] }
         default:
             unsupportedInstruction = instruction
         }
