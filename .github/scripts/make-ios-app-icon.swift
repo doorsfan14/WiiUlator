@@ -1,14 +1,16 @@
 import AppKit
 import Foundation
 
-guard CommandLine.arguments.count == 4 else {
-    fputs("usage: make-ios-app-icon.swift <background.png> <foreground.png> <output.png>\n", stderr)
+guard CommandLine.arguments.count == 3 else {
+    fputs("usage: make-ios-app-icon.swift <output-directory> <source-size>\n", stderr)
     exit(2)
 }
 
-let backgroundURL = URL(fileURLWithPath: CommandLine.arguments[1])
-let foregroundURL = URL(fileURLWithPath: CommandLine.arguments[2])
-let outputURL = URL(fileURLWithPath: CommandLine.arguments[3])
+let outputDirectory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
+let sourceSize = CGFloat(Double(CommandLine.arguments[2]) ?? 1024)
+
+let backgroundURL = outputDirectory.appendingPathComponent("background.png")
+let foregroundURL = outputDirectory.appendingPathComponent("icon.png")
 
 guard let background = NSImage(contentsOf: backgroundURL),
       let foreground = NSImage(contentsOf: foregroundURL) else {
@@ -16,24 +18,41 @@ guard let background = NSImage(contentsOf: backgroundURL),
     exit(1)
 }
 
-let size = NSSize(width: 1024, height: 1024)
-let canvas = NSImage(size: size)
-
-canvas.lockFocus()
+let sourceCanvasSize = NSSize(width: sourceSize, height: sourceSize)
+let composed = NSImage(size: sourceCanvasSize)
+composed.lockFocus()
 NSGraphicsContext.current?.imageInterpolation = .high
+let sourceRect = NSRect(origin: .zero, size: sourceCanvasSize)
+background.draw(in: sourceRect, from: NSRect(origin: .zero, size: background.size), operation: .copy, fraction: 1.0)
+foreground.draw(in: sourceRect, from: NSRect(origin: .zero, size: foreground.size), operation: .sourceOver, fraction: 1.0)
+composed.unlockFocus()
 
-let destination = NSRect(origin: .zero, size: size)
-background.draw(in: destination, from: NSRect(origin: .zero, size: background.size), operation: .copy, fraction: 1.0)
-foreground.draw(in: destination, from: NSRect(origin: .zero, size: foreground.size), operation: .sourceOver, fraction: 1.0)
+let sizes: [(String, CGFloat)] = [
+    ("WiiUlator-60@2x.png", 120),
+    ("WiiUlator-60@3x.png", 180),
+    ("WiiUlator-76@2x.png", 152),
+    ("WiiUlator-83.5@2x.png", 167),
+    ("WiiUlator-1024.png", 1024)
+]
 
-canvas.unlockFocus()
+for (filename, pixels) in sizes {
+    let outputSize = NSSize(width: pixels, height: pixels)
+    let image = NSImage(size: outputSize)
+    image.lockFocus()
+    NSGraphicsContext.current?.imageInterpolation = .high
+    composed.draw(in: NSRect(origin: .zero, size: outputSize),
+                  from: sourceRect,
+                  operation: .copy,
+                  fraction: 1.0)
+    image.unlockFocus()
 
-guard let tiff = canvas.tiffRepresentation,
-      let bitmap = NSBitmapImageRep(data: tiff),
-      let png = bitmap.representation(using: .png, properties: [:]) else {
-    fputs("Unable to encode the generated app icon.\n", stderr)
-    exit(1)
+    guard let tiff = image.tiffRepresentation,
+          let bitmap = NSBitmapImageRep(data: tiff),
+          let png = bitmap.representation(using: .png, properties: [:]) else {
+        fputs("Unable to encode \(filename).\n", stderr)
+        exit(1)
+    }
+
+    try png.write(to: outputDirectory.appendingPathComponent(filename))
+    print("Generated \(filename)")
 }
-
-try png.write(to: outputURL)
-print("Generated \(outputURL.path)")
