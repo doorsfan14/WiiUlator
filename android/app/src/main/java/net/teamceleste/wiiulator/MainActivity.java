@@ -298,6 +298,7 @@ public final class MainActivity extends Activity {
         section("ABOUT");
         setting("About WiiUlator","Version 1.0 · Android",net.teamceleste.wiiulator.R.drawable.ic_star,v->showAbout());
         setting("Buy us a coffee","Support Team Celeste · WiiUlator is free",net.teamceleste.wiiulator.R.drawable.ic_star,v->Toast.makeText(this,"Thanks for supporting Team Celeste! Donation link coming soon.",Toast.LENGTH_LONG).show());
+        setting("Credits","Contributors · Team Celeste",net.teamceleste.wiiulator.R.drawable.ic_star,v->showCredits());
     }
 
     private void setting(String title,String sub,int icon,View.OnClickListener click) {
@@ -463,6 +464,56 @@ public final class MainActivity extends Activity {
         TextView n=text("Imported games stay inside WiiUlator's app storage. Game files are not bundled.",13,MUTED);
         n.setPadding(dp(8),dp(12),dp(8),dp(12));
         content.addView(n);
+    }
+
+    private void showCredits() {
+        subHeader("Credits");
+        section("CONTRIBUTORS");
+
+        MaterialCardView c=card();
+        LinearLayout row=new LinearLayout(this);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(16),dp(12),dp(16),dp(12));
+
+        ImageView avatar=new ImageView(this);
+        avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        GradientDrawable avatarBackground=new GradientDrawable();
+        avatarBackground.setShape(GradientDrawable.OVAL);
+        avatarBackground.setColor(SURFACE);
+        avatar.setBackground(avatarBackground);
+        avatar.setClipToOutline(true);
+        row.addView(avatar,new LinearLayout.LayoutParams(dp(56),dp(56)));
+
+        LinearLayout identity=new LinearLayout(this);
+        identity.setOrientation(LinearLayout.VERTICAL);
+        identity.setPadding(dp(14),0,dp(8),0);
+
+        TextView name=text("doorsfan14",17,TEXT);
+        name.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        TextView role=text("Main Developer",13,MUTED);
+        identity.addView(name,new LinearLayout.LayoutParams(-1,dp(27)));
+        identity.addView(role,new LinearLayout.LayoutParams(-1,dp(22)));
+        row.addView(identity,new LinearLayout.LayoutParams(0,dp(56),1));
+
+        c.addView(row);
+        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(82));
+        p.bottomMargin=dp(8);
+        content.addView(c,p);
+
+        new Thread(() -> {
+            try {
+                java.net.URL url=new java.net.URL("https://avatars.githubusercontent.com/u/291543116?v=4");
+                java.net.HttpURLConnection connection=(java.net.HttpURLConnection)url.openConnection();
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+                connection.setInstanceFollowRedirects(true);
+                try(InputStream in=connection.getInputStream()) {
+                    Bitmap bitmap=BitmapFactory.decodeStream(in);
+                    if(bitmap!=null) runOnUiThread(() -> avatar.setImageBitmap(bitmap));
+                }
+            } catch(Exception ignored) {
+            }
+        }).start();
     }
 
     private void showAbout() {
