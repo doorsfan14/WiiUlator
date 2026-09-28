@@ -29,6 +29,14 @@ public final class PowerPCCPU {
         pc &+= 4
 
         switch instruction >> 26 {
+        case 7:
+            let d = Int((instruction >> 21) & 31), a = Int((instruction >> 16) & 31)
+            registers[d] = registers[a] &* UInt32(bitPattern: Int32(Int16(bitPattern: UInt16(instruction & 0xFFFF))))
+
+        case 8:
+            let d = Int((instruction >> 21) & 31), a = Int((instruction >> 16) & 31)
+            registers[d] = UInt32(bitPattern: Int32(Int16(bitPattern: UInt16(instruction & 0xFFFF)))) &- registers[a]
+
         case 14:
             let d = Int((instruction >> 21) & 31)
             let a = Int((instruction >> 16) & 31)
@@ -183,6 +191,22 @@ public final class PowerPCCPU {
         let b = Int((instruction >> 11) & 31)
 
         switch xo {
+        case 19:
+            registers[a] = conditionRegister
+        case 24:
+            registers[a] = registers[s] << (registers[b] & 31)
+        case 26:
+            registers[a] = UInt32(registers[s] == 0 ? 32 : registers[s].leadingZeroBitCount)
+        case 104:
+            registers[a] = 0 &- registers[s]
+        case 124:
+            registers[a] = ~(registers[s] | registers[b])
+        case 235:
+            registers[a] = registers[s] &* registers[b]
+        case 476:
+            registers[a] = ~(registers[s] & registers[b])
+        case 491:
+            if registers[b] != 0 { registers[a] = UInt32(bitPattern: Int32(bitPattern: registers[s]) / Int32(bitPattern: registers[b])) }
         case 266:
             registers[a] = registers[s] &+ registers[b]
         case 40:
