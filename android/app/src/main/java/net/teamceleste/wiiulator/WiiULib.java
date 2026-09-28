@@ -5,6 +5,7 @@ import java.io.*;
 final class WiiULib {
  final EmulatorMemory memory=new EmulatorMemory();
  final PowerPCCPU cpu=new PowerPCCPU();
+ final WiiUSystem system=new WiiUSystem();
  long instructions;
  int entry;
 
