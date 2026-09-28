@@ -26,11 +26,15 @@ public final class WiiUSystem {
         cpu.pc = entryPoint
     }
 
+    func tick() {
+        cycles += 1
+    }
+
     public func run(instructions: Int) {
         guard instructions > 0 else { return }
         for _ in 0..<instructions {
             cpu.step(memory: memory)
-            cycles += 1
+            tick()
             if cpu.unsupportedInstruction != 0 { break }
         }
     }
