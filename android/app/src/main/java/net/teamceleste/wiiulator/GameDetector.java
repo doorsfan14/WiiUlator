@@ -91,6 +91,7 @@ final class GameDetector {
         } catch (IOException ignored) {
             return null;
         }
+        return null;
     }
 
     private static boolean isZip(byte[] data) {
