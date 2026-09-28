@@ -6,6 +6,7 @@ final class WiiULib {
  final EmulatorMemory memory=new EmulatorMemory();
  final PowerPCCPU cpu=new PowerPCCPU();
  final WiiUSystem system=new WiiUSystem();
+ WiiUAudio audio(){return system.audio;}
  long instructions;
  int entry;
 
