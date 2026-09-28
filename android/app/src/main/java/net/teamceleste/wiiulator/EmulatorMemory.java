@@ -14,6 +14,23 @@ final class EmulatorMemory {
     void write8(int a,int v){int n=a>>>12; byte[] p=pages.get(n); if(p==null){p=new byte[PAGE_SIZE];pages.put(n,p);} p[a&0xfff]=(byte)v;}
     void write16(int a,int v){write8(a,v>>>8);write8(a+1,v);}
     void write32(int a,int v){write8(a,v>>>24);write8(a+1,v>>>16);write8(a+2,v>>>8);write8(a+3,v);}
-    void load(byte[] d,int a){for(int i=0;i<d.length;i++)write8(a+i,d[i]);}
-    void zero(int count,int a){for(int i=0;i<count;i++)write8(a+i,0);}
+    void load(byte[] d,int a){
+        int source=0;
+        while(source<d.length){
+            int address=a+source, page=address>>>12, offset=address&0xfff, length=Math.min(PAGE_SIZE-offset,d.length-source);
+            byte[] p=pages.get(page);
+            if(p==null){p=new byte[PAGE_SIZE];pages.put(page,p);}
+            System.arraycopy(d,source,p,offset,length);
+            source+=length;
+        }
+    }
+    void zero(int count,int a){
+        while(count>0){
+            int page=a>>>12, offset=a&0xfff, length=Math.min(PAGE_SIZE-offset,count);
+            byte[] p=pages.get(page);
+            if(p==null){p=new byte[PAGE_SIZE];pages.put(page,p);}
+            java.util.Arrays.fill(p,offset,offset+length,(byte)0);
+            a+=length; count-=length;
+        }
+    }
 }
