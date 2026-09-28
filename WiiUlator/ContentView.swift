@@ -1362,6 +1362,7 @@ struct SystemSettingsView: View {
     @AppStorage("confirmExit") private var confirmExit = true
     @AppStorage("maximumRAMMB") private var maximumRAMMB = EmulatorMemoryPolicy.recommendedMB
     @State private var showingRAMWarning = false
+    @State private var isAdjustingRAM = false
 
     private var jitEnabled: Bool {
         JITStatus.isEnabled
@@ -1445,8 +1446,8 @@ struct SystemSettingsView: View {
         .onAppear {
             maximumRAMMB = EmulatorMemoryPolicy.clamped(maximumRAMMB)
         }
-        .onChange(of: maximumRAMMB) { _ in
-            if maximumRAMMB > EmulatorMemoryPolicy.recommendedMB {
+        .onChange(of: isAdjustingRAM) { adjusting in
+            if !adjusting && maximumRAMMB > EmulatorMemoryPolicy.recommendedMB {
                 showingRAMWarning = true
             }
         }
