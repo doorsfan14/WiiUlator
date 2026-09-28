@@ -492,7 +492,7 @@ public final class MainActivity extends Activity {
         Uri uri=d.getData();if(uri==null)return;
         try(InputStream in=getContentResolver().openInputStream(uri)) {
             byte[] data=readAll(in);
-            new EmulatorCore().loadElf(data);
+            new WiiULib().loadElf(data);
             String name=uri.getLastPathSegment();
             if(name==null)name="Imported Wii U Game";
             games.add(new Game(name,"Local","Ready"));
