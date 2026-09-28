@@ -1403,7 +1403,10 @@ struct SystemSettingsView: View {
                     Slider(
                         value: ramValue,
                         in: Double(EmulatorMemoryPolicy.minimumMB)...Double(EmulatorMemoryPolicy.maximumMB),
-                        step: Double(EmulatorMemoryPolicy.stepMB)
+                        step: Double(EmulatorMemoryPolicy.stepMB),
+                        onEditingChanged: { editing in
+                            isAdjustingRAM = editing
+                        }
                     )
                     .accessibilityValue(EmulatorMemoryPolicy.format(maximumRAMMB))
 
