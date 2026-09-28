@@ -1,6 +1,6 @@
 import Foundation
 
-enum WiiULibError: Error {
+public enum WiiULibError: Error {
     case invalidELF
     case unsupportedELF
     case invalidLoadSegment
@@ -8,27 +8,27 @@ enum WiiULibError: Error {
     case noLoadableSegments
 }
 
-final class WiiULib {
-    let memory = WiiUMemory()
-    let cpu = PowerPCCPU()
-    private(set) var instructionCount: UInt64 = 0
-    private(set) var entryPoint: UInt32 = 0
+public final class WiiULib {
+    public let memory = WiiUMemory()
+    public let cpu = PowerPCCPU()
+    public private(set) var instructionCount: UInt64 = 0
+    public private(set) var entryPoint: UInt32 = 0
 
-    func reset() {
+    public func reset() {
         memory.reset()
         cpu.reset()
         instructionCount = 0
         entryPoint = 0
     }
 
-    func load(data: Data, at address: UInt32, entryPoint: UInt32) {
+    public func load(data: Data, at address: UInt32, entryPoint: UInt32) {
         reset()
         memory.load(data, at: address)
         self.entryPoint = entryPoint
         cpu.pc = entryPoint
     }
 
-    func run(instructions count: Int) {
+    public func run(instructions count: Int) {
         guard count > 0 else { return }
         for _ in 0..<count {
             cpu.step(memory: memory)
@@ -39,7 +39,7 @@ final class WiiULib {
         }
     }
 
-    func loadELF(_ data: Data) throws {
+    public func loadELF(_ data: Data) throws {
         guard data.count >= 52,
               data[data.startIndex] == 0x7F,
               data[data.startIndex + 1] == 0x45,
