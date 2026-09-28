@@ -21,36 +21,36 @@ jobs:
           sudo xcode-select -s /Applications/Xcode.app
           xcodebuild -version
 
-      - name: Generate layered app icon
+      - name: Generate app icon variants
         run: |
-          xcrun swift .github/scripts/make-ios-app-icon.swift             ios/WiiUlator/Assets.xcassets/AppIcon.appiconset/background.png             ios/WiiUlator/Assets.xcassets/AppIcon.appiconset/icon.png             ios/WiiUlator/Assets.xcassets/AppIcon.appiconset/WiiUlatorAppIcon.png
+          xcrun swift .github/scripts/make-ios-app-icon.swift             ios/WiiUlator/Assets.xcassets/AppIcon.appiconset             1024
+
+      - name: Verify app icon assets
+        run: |
+          ls -lh ios/WiiUlator/Assets.xcassets/AppIcon.appiconset/*.png
+          file ios/WiiUlator/Assets.xcassets/AppIcon.appiconset/WiiUlator-1024.png
 
       - name: Build WiiUlator
         run: |
-          xcodebuild \
-            -project WiiUlator.xcodeproj \
-            -scheme WiiUlator \
-            -sdk iphoneos \
-            -configuration Release \
-            -derivedDataPath build \
-            IPHONEOS_DEPLOYMENT_TARGET=16.0 \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+          xcodebuild             -project WiiUlator.xcodeproj             -scheme WiiUlator             -sdk iphoneos             -configuration Release             -derivedDataPath build             IPHONEOS_DEPLOYMENT_TARGET=16.0             CODE_SIGNING_ALLOWED=NO             CODE_SIGNING_REQUIRED=NO             CODE_SIGN_IDENTITY=""
+
+      - name: Verify compiled app icon
+        run: |
+          APP_PATH="$(find build -type d -name 'WiiUlator.app' -print -quit)"
+          test -n "$APP_PATH"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIcons" "$APP_PATH/Info.plist" || true
+          test -f "$APP_PATH/Assets.car"
+          echo "Assets.car present in $APP_PATH"
 
       - name: Package IPA
         run: |
           mkdir -p Payload
-
           APP_PATH="$(find build -type d -name 'WiiUlator.app' -print -quit)"
-
           if [ -z "$APP_PATH" ]; then
             echo "WiiUlator.app was not found."
             exit 1
           fi
-
           cp -R "$APP_PATH" Payload/WiiUlator.app
-
           zip -r wiiulator-ios.ipa Payload
 
       - name: Upload IPA
