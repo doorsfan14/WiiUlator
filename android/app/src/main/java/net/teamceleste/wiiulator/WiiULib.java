@@ -3,22 +3,23 @@ package net.teamceleste.wiiulator;
 import java.io.*;
 
 final class WiiULib {
- final EmulatorMemory memory=new EmulatorMemory();
- final PowerPCCPU cpu=new PowerPCCPU();
  final WiiUSystem system=new WiiUSystem();
+ final EmulatorMemory memory=system.memory;
+ final PowerPCCPU cpu=system.cpu;
  WiiUAudio audio(){return system.audio;}
  long instructions;
  int entry;
 
- void reset(){memory.reset();cpu.reset();system.reset();instructions=0;entry=0;}
+ void reset(){system.reset();instructions=0;entry=0;}
  void load(byte[] data,int address,int entryPoint){reset();memory.load(data,address);entry=entryPoint;cpu.pc=entryPoint;}
- void run(int count){if(count<=0)return;for(int i=0;i<count;i++){cpu.step(memory);instructions++;if(cpu.unsupported!=0)break;}}
+ void run(int count){if(count<=0)return;for(int i=0;i<count;i++){cpu.step(memory);instructions++;system.cycles++;if(cpu.unsupported!=0)break;}}
  boolean isStopped(){return cpu.unsupported!=0;}
  int programCounter(){return cpu.pc;}
  static int u16(byte[]d,int o){return ((d[o]&255)<<8)|(d[o+1]&255);}
  static int u32(byte[]d,int o){return ((d[o]&255)<<24)|((d[o+1]&255)<<16)|((d[o+2]&255)<<8)|(d[o+3]&255);}
 
  void loadElf(byte[]d)throws IOException{
+  reset();
   if(d.length<52||d[0]!=0x7f||d[1]!='E'||d[2]!='L'||d[3]!='F')throw new IOException("Not ELF");
   if(d[4]!=1||d[5]!=2)throw new IOException("Need 32-bit big-endian ELF");
   if(u16(d,18)!=20)throw new IOException("Need PowerPC ELF");
