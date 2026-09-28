@@ -1,16 +1,16 @@
 import Foundation
 
-final class PowerPCCPU {
-    var registers = [UInt32](repeating: 0, count: 32)
-    var pc: UInt32 = 0
-    var conditionRegister: UInt32 = 0
-    var linkRegister: UInt32 = 0
-    var countRegister: UInt32 = 0
-    var xer: UInt32 = 0
-    private(set) var lastInstruction: UInt32 = 0
-    private(set) var unsupportedInstruction: UInt32 = 0
+public final class PowerPCCPU {
+    public var registers = [UInt32](repeating: 0, count: 32)
+    public var pc: UInt32 = 0
+    public var conditionRegister: UInt32 = 0
+    public var linkRegister: UInt32 = 0
+    public var countRegister: UInt32 = 0
+    public var xer: UInt32 = 0
+    public private(set) var lastInstruction: UInt32 = 0
+    public private(set) var unsupportedInstruction: UInt32 = 0
 
-    func reset() {
+    public func reset() {
         registers = [UInt32](repeating: 0, count: 32)
         pc = 0
         conditionRegister = 0
@@ -21,7 +21,7 @@ final class PowerPCCPU {
         unsupportedInstruction = 0
     }
 
-    func step(memory: WiiUMemory) {
+    public func step(memory: WiiUMemory) {
         let currentPC = pc
         let instruction = memory.read32(currentPC)
         lastInstruction = instruction
