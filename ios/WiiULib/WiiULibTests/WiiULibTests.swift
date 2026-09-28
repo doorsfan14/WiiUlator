@@ -31,6 +31,9 @@ final class WiiULibTests: XCTestCase {
         XCTAssertEqual(core.cpu.registers[3], 42)
         XCTAssertEqual(core.cpu.pc, address + 4)
         XCTAssertEqual(core.instructionCount, 1)
+        XCTAssertEqual(core.system.cycles, 1)
+        XCTAssertTrue(core.memory === core.system.memory)
+        XCTAssertTrue(core.cpu === core.system.cpu)
     }
 
     func testPowerPCBranchAndLink() {
