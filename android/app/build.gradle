@@ -4,6 +4,28 @@ android { namespace 'net.teamceleste.wiiulator'; compileSdk 35
     defaultConfig { applicationId 'net.teamceleste.wiiulator'; minSdk 26; targetSdk 35; versionCode 1; versionName '1.0' }
 }
 
+def prepareWiiUlatorIconAssets = tasks.register("prepareWiiUlatorIconAssets") {
+    doLast {
+        def sourceDir = file("../../ios/WiiUlator/Assets.xcassets/AppIcon.appiconset")
+        def targetDir = file("src/main/res/drawable-nodpi")
+        targetDir.mkdirs()
+        copy {
+            from new File(sourceDir, "background.png")
+            into targetDir
+            rename { "wiiulator_icon_background.png" }
+        }
+        copy {
+            from new File(sourceDir, "icon.png")
+            into targetDir
+            rename { "wiiulator_icon_foreground.png" }
+        }
+    }
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(prepareWiiUlatorIconAssets)
+}
+
 dependencies {
     implementation 'com.google.android.material:material:1.13.0'
     testImplementation 'junit:junit:4.13.2'
