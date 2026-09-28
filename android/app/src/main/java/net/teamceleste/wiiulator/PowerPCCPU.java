@@ -45,7 +45,7 @@ final class PowerPCCPU {
    case 124:r[a]=~(r[s]|r[b]);break;
    case 235:r[a]=r[s]*r[b];break;
    case 476:r[a]=~(r[s]&r[b]);break;
-   case 491:if(r[b]!=0)r[a]=r[s]/r[b];break;
+   case 491:if(r[b]!=0 && !(r[s]==Integer.MIN_VALUE && r[b]==-1))r[a]=r[s]/r[b];break;
    case 266:r[a]=r[s]+r[b];break;
    case 444:r[a]=r[s]|r[b];break;
    case 316:r[a]=r[s]^r[b];break;
@@ -53,11 +53,10 @@ final class PowerPCCPU {
    case 536:r[a]=r[s]>>>(r[b]&31);break;
    case 534:{int ad=base(a)+r[b];r[s]=Integer.reverseBytes(m.read32(ad));break;}
    case 662:{int ad=base(a)+r[b];m.write32(ad,Integer.reverseBytes(r[s]));break;}
-   case 339:{
-    int spr=((i>>>16)&31)|(((i>>>11)&31)<<5);
-    r[a]=spr==1?xer:spr==8?lr:spr==9?ctr:0;
-    break;
-   }
+   case 16:if(cond(i))pc=lr&~3;if((i&1)!=0)lr=pc;break;
+   case 528:if(cond(i))pc=ctr&~3;break;
+   case 339:{int spr=((i>>>16)&31)|(((i>>>11)&31)<<5);r[a]=spr==1?xer:spr==8?lr:spr==9?ctr:0;break;}
+   case 467:{int spr=((i>>>16)&31)|(((i>>>11)&31)<<5);if(spr==8)lr=r[s];else if(spr==9)ctr=r[s];else if(spr==1)xer=r[s];break;}
    default:unsupported=i;
   }
  }
