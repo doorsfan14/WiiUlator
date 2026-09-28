@@ -28,7 +28,7 @@ public final class WiiULib {
         cpu.pc = entryPoint
     }
 
-    public func run(instructions count: Int) {
+    public var isStopped: Bool { cpu.unsupportedInstruction != 0 }\n\n    public var programCounter: UInt32 { cpu.pc }\n\n    public func run(instructions count: Int) {
         guard count > 0 else { return }
         for _ in 0..<count {
             cpu.step(memory: memory)
