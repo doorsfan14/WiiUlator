@@ -217,10 +217,6 @@ public final class PowerPCCPU {
             registers[a] = registers[s] ^ registers[b]
         case 28:
             registers[a] = registers[s] & registers[b]
-        case 19:
-            registers[a] = conditionRegister
-        case 24:
-            registers[a] = registers[s] << (registers[b] & 31)
         case 536:
             registers[a] = registers[s] >> (registers[b] & 31)
         case 534:
