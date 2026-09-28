@@ -8,11 +8,13 @@ final class WiiUSystem {
 
     final EmulatorMemory memory = new EmulatorMemory();
     final PowerPCCPU cpu = new PowerPCCPU();
+    final WiiUAudio audio = new WiiUAudio();
     long cycles;
 
     void reset() {
         memory.reset();
         cpu.reset();
+        audio.reset();
         cycles = 0;
     }
 
