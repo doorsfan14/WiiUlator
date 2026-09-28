@@ -29,8 +29,8 @@ public final class MainActivity extends Activity {
     private static final int PICK = 7;
 
     private static final class Game {
-        final String name, provider, version;
-        Game(String n, String p, String v) { name=n; provider=p; version=v; }
+        final String name, provider, version, titleId, region;
+        Game(String n, String p, String v, String id, String r) { name=n; provider=p; version=v; titleId=id; region=r; }
     }
 
     @Override public void onCreate(Bundle b) {
@@ -225,7 +225,7 @@ public final class MainActivity extends Activity {
         info.setPadding(dp(14),0,dp(8),0);
         TextView n=text(g.name,18,TEXT);
         n.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
-        TextView p=text(g.provider,13,MUTED);
+        TextView p=text(g.provider + (g.region.isEmpty()?"":" · "+g.region),13,MUTED);
         TextView v=text(g.version.isEmpty()?"Ready":g.version,12,PRIMARY);
         info.addView(n,new LinearLayout.LayoutParams(-1,dp(28)));
         info.addView(p,new LinearLayout.LayoutParams(-1,dp(22)));
@@ -492,10 +492,22 @@ public final class MainActivity extends Activity {
         Uri uri=d.getData();if(uri==null)return;
         try(InputStream in=getContentResolver().openInputStream(uri)) {
             byte[] data=readAll(in);
-            new WiiULib().loadElf(data);
-            String name=uri.getLastPathSegment();
-            if(name==null)name="Imported Wii U Game";
-            games.add(new Game(name,"Local","Ready"));
+            String path=uri.getPath();
+            String extension="";
+            int dot=path==null?-1:path.lastIndexOf('.');
+            if(dot>=0 && dot+1<path.length()) extension=path.substring(dot+1).toLowerCase(Locale.ROOT);
+
+            // The filename is deliberately ignored for game identification.
+            // Wii U title metadata/content determines the library name.
+            GameDetector.Result detected=GameDetector.detect(data,extension);
+
+            if(extension.equals("rpx") || extension.equals("elf")) {
+                new WiiULib().loadElf(data);
+            } else {
+                throw new IOException("Unsupported Wii U game format: ."+extension);
+            }
+
+            games.add(new Game(detected.title,"Local","Ready",detected.titleId,detected.region));
             showLibrary();
         } catch(Exception e) {
             Toast.makeText(this,"Load failed: "+e.getMessage(),Toast.LENGTH_LONG).show();
