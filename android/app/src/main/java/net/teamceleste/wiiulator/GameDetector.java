@@ -4,6 +4,8 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 final class GameDetector {
     static final class Result {
