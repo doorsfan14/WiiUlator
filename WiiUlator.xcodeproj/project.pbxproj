@@ -29,6 +29,7 @@
         A1000000000000000000000E = { isa = PBXBuildFile; fileRef = A10000000000000000000024; };
         A1000000000000000000000F = { isa = PBXBuildFile; fileRef = A10000000000000000000025; };
         A10000000000000000000010 = { isa = PBXBuildFile; fileRef = A10000000000000000000026; };
+        A10000000000000120 = { isa = PBXBuildFile; fileRef = A10000000000000121; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +60,7 @@
         A10000000000000104 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = WiiUlator/ja.lproj/Localizable.strings; sourceTree = "<group>"; };
         A10000000000000105 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = WiiUlator/zh-Hans.lproj/Localizable.strings; sourceTree = "<group>"; };
         A10000000000000110 = { isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WiiUlator/WiiUlator.entitlements; sourceTree = "<group>"; };
+        A10000000000000121 = { isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
         A10000000000000000000013 = {
             isa = PBXFileReference;
             explicitFileType = wrapper.application;
@@ -98,6 +100,7 @@
                 A10000000000000104,
                 A10000000000000105,
                 A10000000000000110,
+                A10000000000000121,
             );
             path = WiiUlator;
             sourceTree = "<group>";
@@ -180,6 +183,7 @@
             buildActionMask = 2147483647;
             files = (
                 A1000000000000000000000D,
+                A10000000000000120,
             );
             runOnlyForDeploymentPostprocessing = 0;
         };
