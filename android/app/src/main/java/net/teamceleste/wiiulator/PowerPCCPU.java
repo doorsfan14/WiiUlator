@@ -5,6 +5,8 @@ final class PowerPCCPU {
  void reset(){java.util.Arrays.fill(r,0);pc=cr=lr=ctr=xer=last=unsupported=0;}
  void step(EmulatorMemory m){int cur=pc;int ins=m.read32(cur);last=ins;unsupported=0;pc+=4;int op=ins>>>26;
   switch(op){
+   case 7: {int d=ins>>>21&31,a=ins>>>16&31;r[d]=r[a]*(short)(ins&65535);break;}
+   case 8: {int d=ins>>>21&31,a=ins>>>16&31;r[d]=(short)(ins&65535)-r[a];break;}
    case 14: {int d=ins>>>21&31,a=ins>>>16&31;r[d]=base(a)+sign16(ins);break;}
    case 15: {int d=ins>>>21&31,a=ins>>>16&31;r[d]=base(a)+(sign16(ins)<<16);break;}
    case 16: branchCond(ins,cur);break;
@@ -35,13 +37,19 @@ final class PowerPCCPU {
  void op31(int i,EmulatorMemory m){
   int xo=i>>>1&1023,s=i>>>21&31,a=i>>>16&31,b=i>>>11&31;
   switch(xo){
-   case 266:r[a]=r[s]+r[b];break;
+   case 19:r[a]=cr;break;
+   case 24:r[a]=r[s]<<(r[b]&31);break;
+   case 26:r[a]=Integer.numberOfLeadingZeros(r[s]);break;
    case 40:r[a]=r[b]-r[s];break;
+   case 104:r[a]=-r[s];break;
+   case 124:r[a]=~(r[s]|r[b]);break;
+   case 235:r[a]=r[s]*r[b];break;
+   case 476:r[a]=~(r[s]&r[b]);break;
+   case 491:if(r[b]!=0)r[a]=r[s]/r[b];break;
+   case 266:r[a]=r[s]+r[b];break;
    case 444:r[a]=r[s]|r[b];break;
    case 316:r[a]=r[s]^r[b];break;
    case 28:r[a]=r[s]&r[b];break;
-   case 19:r[a]=cr;break;
-   case 24:r[a]=r[s]<<(r[b]&31);break;
    case 536:r[a]=r[s]>>>(r[b]&31);break;
    case 534:{int ad=base(a)+r[b];r[s]=Integer.reverseBytes(m.read32(ad));break;}
    case 662:{int ad=base(a)+r[b];m.write32(ad,Integer.reverseBytes(r[s]));break;}
