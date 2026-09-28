@@ -890,6 +890,12 @@ struct SettingsView: View {
                     } label: {
                         Label("About", systemImage: "info.circle")
                     }
+
+                    Button {
+                        // Donation link will be connected when Team Celeste has a public support page.
+                    } label: {
+                        Label("Buy us a coffee", systemImage: "cup.and.saucer")
+                    }
                 }
             }
             .navigationTitle("Settings")
