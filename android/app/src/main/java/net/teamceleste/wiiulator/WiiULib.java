@@ -10,7 +10,7 @@ final class WiiULib {
 
  void reset(){memory.reset();cpu.reset();instructions=0;entry=0;}
  void load(byte[] data,int address,int entryPoint){reset();memory.load(data,address);entry=entryPoint;cpu.pc=entryPoint;}
- void run(int count){if(count<=0)return;for(int i=0;i<count;i++){cpu.step(memory);instructions++;if(cpu.unsupported!=0)break;}}
+ void run(int count){if(count<=0)return;for(int i=0;i<count;i++){cpu.step(memory);instructions++;if(cpu.unsupported!=0)break;}}\n boolean isStopped(){return cpu.unsupported!=0;}\n int programCounter(){return cpu.pc;}
  static int u16(byte[]d,int o){return ((d[o]&255)<<8)|(d[o+1]&255);}
  static int u32(byte[]d,int o){return ((d[o]&255)<<24)|((d[o+1]&255)<<16)|((d[o+2]&255)<<8)|(d[o+3]&255);}
 
