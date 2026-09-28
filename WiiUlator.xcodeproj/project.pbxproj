@@ -60,7 +60,7 @@
         A10000000000000104 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = WiiUlator/ja.lproj/Localizable.strings; sourceTree = "<group>"; };
         A10000000000000105 = { isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = WiiUlator/zh-Hans.lproj/Localizable.strings; sourceTree = "<group>"; };
         A10000000000000110 = { isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WiiUlator/WiiUlator.entitlements; sourceTree = "<group>"; };
-        A10000000000000121 = { isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+        A10000000000000121 = { isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = ../ios/WiiUlator/Assets.xcassets; sourceTree = "<group>"; };
         A10000000000000000000013 = {
             isa = PBXFileReference;
             explicitFileType = wrapper.application;
