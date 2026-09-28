@@ -37,7 +37,7 @@ public final class WiiULib {
         for _ in 0..<count {
             cpu.step(memory: memory)
             instructionCount += 1
-            system.cycles += 1
+            system.tick()
             if cpu.unsupportedInstruction != 0 { break }
         }
     }
