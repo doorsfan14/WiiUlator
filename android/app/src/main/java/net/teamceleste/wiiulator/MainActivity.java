@@ -19,6 +19,7 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import java.io.*;
 import java.util.*;
 import android.graphics.drawable.AnimatedVectorDrawable;
+import android.graphics.drawable.GradientDrawable;
 
 public final class MainActivity extends Activity {
     private LinearLayout content;
@@ -298,7 +299,8 @@ public final class MainActivity extends Activity {
         section("ABOUT");
         setting("About WiiUlator","Version 1.0 · Android",net.teamceleste.wiiulator.R.drawable.ic_star,v->showAbout());
         setting("Buy us a coffee","Support Team Celeste · WiiUlator is free",net.teamceleste.wiiulator.R.drawable.ic_star,v->Toast.makeText(this,"Thanks for supporting Team Celeste! Donation link coming soon.",Toast.LENGTH_LONG).show());
-        setting("Credits","Contributors · Team Celeste",net.teamceleste.wiiulator.R.drawable.ic_star,v->showCredits());
+        section("CREDITS");
+        addCreditCard();
     }
 
     private void setting(String title,String sub,int icon,View.OnClickListener click) {
@@ -466,10 +468,7 @@ public final class MainActivity extends Activity {
         content.addView(n);
     }
 
-    private void showCredits() {
-        subHeader("Credits");
-        section("CONTRIBUTORS");
-
+    private void addCreditCard() {
         MaterialCardView c=card();
         LinearLayout row=new LinearLayout(this);
         row.setGravity(Gravity.CENTER_VERTICAL);
@@ -487,14 +486,12 @@ public final class MainActivity extends Activity {
         LinearLayout identity=new LinearLayout(this);
         identity.setOrientation(LinearLayout.VERTICAL);
         identity.setPadding(dp(14),0,dp(8),0);
-
         TextView name=text("doorsfan14",17,TEXT);
         name.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
         TextView role=text("Main Developer",13,MUTED);
         identity.addView(name,new LinearLayout.LayoutParams(-1,dp(27)));
         identity.addView(role,new LinearLayout.LayoutParams(-1,dp(22)));
         row.addView(identity,new LinearLayout.LayoutParams(0,dp(56),1));
-
         c.addView(row);
         LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(82));
         p.bottomMargin=dp(8);
@@ -511,8 +508,7 @@ public final class MainActivity extends Activity {
                     Bitmap bitmap=BitmapFactory.decodeStream(in);
                     if(bitmap!=null) runOnUiThread(() -> avatar.setImageBitmap(bitmap));
                 }
-            } catch(Exception ignored) {
-            }
+            } catch(Exception ignored) {}
         }).start();
     }
 
