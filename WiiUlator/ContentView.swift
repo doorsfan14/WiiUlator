@@ -891,6 +891,12 @@ struct SettingsView: View {
                         Label("About", systemImage: "info.circle")
                     }
 
+                    NavigationLink {
+                        CreditsView()
+                    } label: {
+                        Label("Credits", systemImage: "person.2.fill")
+                    }
+
                     Button {
                         // Donation link will be connected when Team Celeste has a public support page.
                     } label: {
@@ -1840,6 +1846,44 @@ final class GameLibraryStore: ObservableObject {
         if let data = try? JSONEncoder().encode(games) {
             UserDefaults.standard.set(data, forKey: key)
         }
+    }
+}
+
+struct CreditsView: View {
+    var body: some View {
+        List {
+            Section("Contributors") {
+                HStack(spacing: 14) {
+                    AsyncImage(url: URL(string: "https://avatars.githubusercontent.com/u/291543116?v=4")) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        default:
+                            Image(systemName: "person.crop.circle.fill")
+                                .resizable()
+                                .scaledToFill()
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .frame(width: 52, height: 52)
+                    .clipShape(Circle())
+
+                    Text("doorsfan14")
+                        .font(.headline)
+
+                    Spacer()
+
+                    Text("Main Developer")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 4)
+            }
+        }
+        .navigationTitle("Credits")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
