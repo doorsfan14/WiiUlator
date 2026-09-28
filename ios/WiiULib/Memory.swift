@@ -59,15 +59,35 @@ public final class WiiUMemory {
     }
 
     public func load(_ data: Data, at address: UInt32) {
-        for (offset, byte) in data.enumerated() {
-            write8(address &+ UInt32(offset), byte)
+        var source = 0
+        while source < data.count {
+            let current = address &+ UInt32(source)
+            let page = current >> 12
+            let offset = Int(current & 0xFFF)
+            let length = min(Self.pageSize - offset, data.count - source)
+            var bytes = pages[page] ?? Array(repeating: 0, count: Self.pageSize)
+            bytes.withUnsafeMutableBufferPointer { buffer in
+                data.copyBytes(to: buffer.baseAddress!.advanced(by: offset), from: source..<(source + length))
+            }
+            pages[page] = bytes
+            source += length
         }
     }
 
     public func zero(count: UInt32, at address: UInt32) {
-        guard count > 0 else { return }
-        for offset in 0..<count {
-            write8(address &+ offset, 0)
+        var remaining = Int(count)
+        var current = address
+        while remaining > 0 {
+            let page = current >> 12
+            let offset = Int(current & 0xFFF)
+            let length = min(Self.pageSize - offset, remaining)
+            var bytes = pages[page] ?? Array(repeating: 0, count: Self.pageSize)
+            bytes.withUnsafeMutableBufferPointer { buffer in
+                buffer[offset..<(offset + length)].initialize(repeating: 0)
+            }
+            pages[page] = bytes
+            current &+= UInt32(length)
+            remaining -= length
         }
     }
 }
