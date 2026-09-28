@@ -14,11 +14,14 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "WiiULib"
+            name: "WiiULib",
+            path: ".",
+            exclude: ["WiiULibTests", "Package.swift"]
         ),
         .testTarget(
             name: "WiiULibTests",
-            dependencies: ["WiiULib"]
+            dependencies: ["WiiULib"],
+            path: "WiiULibTests"
         )
     ]
 )
