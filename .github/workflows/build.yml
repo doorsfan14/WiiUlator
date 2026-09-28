@@ -21,6 +21,10 @@ jobs:
           sudo xcode-select -s /Applications/Xcode.app
           xcodebuild -version
 
+      - name: Generate layered app icon
+        run: |
+          xcrun swift .github/scripts/make-ios-app-icon.swift             ios/WiiUlator/Assets.xcassets/AppIcon.appiconset/background.png             ios/WiiUlator/Assets.xcassets/AppIcon.appiconset/icon.png             ios/WiiUlator/Assets.xcassets/AppIcon.appiconset/WiiUlatorAppIcon.png
+
       - name: Build WiiUlator
         run: |
           xcodebuild \
