@@ -11,6 +11,15 @@ final class WiiULibTests: XCTestCase {
         XCTAssertEqual(memory.read32(0x1000), 0x12345678)
     }
 
+    func testCrossPageMemory() {
+        let memory = WiiUMemory()
+        memory.write32(0x1FFE, 0x12345678)
+        XCTAssertEqual(memory.read32(0x1FFE), 0x12345678)
+
+        memory.zero(count: 4, at: 0x1FFE)
+        XCTAssertEqual(memory.read32(0x1FFE), 0)
+    }
+
     func testPowerPCAddImmediate() {
         let core = WiiULib()
         let address: UInt32 = 0x1000
@@ -22,6 +31,18 @@ final class WiiULibTests: XCTestCase {
         XCTAssertEqual(core.cpu.registers[3], 42)
         XCTAssertEqual(core.cpu.pc, address + 4)
         XCTAssertEqual(core.instructionCount, 1)
+    }
+
+    func testPowerPCBranchAndLink() {
+        let core = WiiULib()
+        let address: UInt32 = 0x2000
+
+        // bl +8; target is 0x2008 and LR becomes 0x2004.
+        core.load(data: Data([0x48, 0x00, 0x00, 0x09, 0x38, 0x60, 0x00, 0x01, 0x38, 0x60, 0x00, 0x02]), at: address, entryPoint: address)
+        core.run(instructions: 1)
+
+        XCTAssertEqual(core.cpu.pc, address + 8)
+        XCTAssertEqual(core.cpu.linkRegister, address + 4)
     }
 
     func testELFLoader() throws {
@@ -36,8 +57,6 @@ final class WiiULibTests: XCTestCase {
         write16(&elf, 42, 32)
         write16(&elf, 44, 1)
 
-        // PT_LOAD, file offset 84 is outside this tiny ELF, so use a
-        // compact segment whose data starts immediately after the header.
         elf = Data(repeating: 0, count: 88)
         elf[0] = 0x7F; elf[1] = 0x45; elf[2] = 0x4C; elf[3] = 0x46
         elf[4] = 1; elf[5] = 2
