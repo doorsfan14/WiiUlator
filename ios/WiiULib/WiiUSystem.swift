@@ -8,6 +8,7 @@ public final class WiiUSystem {
 
     public let memory = WiiUMemory()
     public let cpu = PowerPCCPU()
+    public let audio = WiiUAudio()
     public private(set) var cycles: UInt64 = 0
 
     public init() {}
@@ -15,6 +16,7 @@ public final class WiiUSystem {
     public func reset() {
         memory.reset()
         cpu.reset()
+        audio.reset()
         cycles = 0
     }
 
