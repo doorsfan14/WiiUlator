@@ -47,11 +47,11 @@ jobs:
 
           cp -R "$APP_PATH" Payload/WiiUlator.app
 
-          zip -r WiiUlator.ipa Payload
+          zip -r wiiulator-ios.ipa Payload
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: WiiUlator-Nightly-1.0
-          path: WiiUlator.ipa
+          name: wiiulator-ios
+          path: wiiulator-ios.ipa
           if-no-files-found: error
