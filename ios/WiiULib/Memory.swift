@@ -15,14 +15,27 @@ public final class WiiUMemory {
     }
 
     public func read16(_ address: UInt32) -> UInt32 {
-        (UInt32(read8(address)) << 8) | UInt32(read8(address &+ 1))
+        let page = address >> 12
+        let offset = Int(address & 0xFFF)
+        if let bytes = pages[page], offset < Self.pageSize - 1 {
+            return (UInt32(bytes[offset]) << 8) | UInt32(bytes[offset + 1])
+        }
+        return (UInt32(read8(address)) << 8) | UInt32(read8(address &+ 1))
     }
 
     public func read32(_ address: UInt32) -> UInt32 {
-        (UInt32(read8(address)) << 24)
-        | (UInt32(read8(address &+ 1)) << 16)
-        | (UInt32(read8(address &+ 2)) << 8)
-        | UInt32(read8(address &+ 3))
+        let page = address >> 12
+        let offset = Int(address & 0xFFF)
+        if let bytes = pages[page], offset <= Self.pageSize - 4 {
+            return (UInt32(bytes[offset]) << 24)
+                | (UInt32(bytes[offset + 1]) << 16)
+                | (UInt32(bytes[offset + 2]) << 8)
+                | UInt32(bytes[offset + 3])
+        }
+        return (UInt32(read8(address)) << 24)
+            | (UInt32(read8(address &+ 1)) << 16)
+            | (UInt32(read8(address &+ 2)) << 8)
+            | UInt32(read8(address &+ 3))
     }
 
     public func write8(_ address: UInt32, _ value: UInt8) {
