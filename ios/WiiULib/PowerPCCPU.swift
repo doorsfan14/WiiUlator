@@ -148,7 +148,7 @@ public final class PowerPCCPU {
             }
 
         case 31:
-            executeOpcode31(instruction, memory: memory)
+            executeOpcode31(instruction, memory: memory, currentPC: currentPC)
 
         default:
             unsupportedInstruction = instruction
@@ -184,7 +184,7 @@ public final class PowerPCCPU {
         }
     }
 
-    private func executeOpcode31(_ instruction: UInt32, memory: WiiUMemory) {
+    private func executeOpcode31(_ instruction: UInt32, memory: WiiUMemory, currentPC: UInt32) {
         let xo = (instruction >> 1) & 1023
         let s = Int((instruction >> 21) & 31)
         let a = Int((instruction >> 16) & 31)
@@ -229,7 +229,7 @@ public final class PowerPCCPU {
             memory.write32(address, registers[s].byteSwapped)
         case 16:
             if conditionMet(instruction) { pc = linkRegister & ~3 }
-            if (instruction & 1) != 0 { linkRegister = pc }
+            if (instruction & 1) != 0 { linkRegister = currentPC &+ 4 }
         case 528:
             if conditionMet(instruction) { pc = countRegister & ~3 }
         case 339:
