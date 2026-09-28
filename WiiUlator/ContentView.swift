@@ -1361,6 +1361,7 @@ struct SystemSettingsView: View {
     @AppStorage("autoSave") private var autoSave = true
     @AppStorage("confirmExit") private var confirmExit = true
     @AppStorage("maximumRAMMB") private var maximumRAMMB = EmulatorMemoryPolicy.recommendedMB
+    @State private var showingRAMWarning = false
 
     private var jitEnabled: Bool {
         JITStatus.isEnabled
@@ -1443,6 +1444,16 @@ struct SystemSettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             maximumRAMMB = EmulatorMemoryPolicy.clamped(maximumRAMMB)
+        }
+        .onChange(of: maximumRAMMB) { _ in
+            if maximumRAMMB > EmulatorMemoryPolicy.recommendedMB {
+                showingRAMWarning = true
+            }
+        }
+        .alert("High RAM Allocation", isPresented: $showingRAMWarning) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Putting a higher RAM amount than your device’s recommended memory will most likely cause crashes and game instability.")
         }
     }
 }
