@@ -297,6 +297,7 @@ public final class MainActivity extends Activity {
 
         section("ABOUT");
         setting("About WiiUlator","Version 1.0 · Android",net.teamceleste.wiiulator.R.drawable.ic_star,v->showAbout());
+        setting("Buy us a coffee","Support Team Celeste · WiiUlator is free",net.teamceleste.wiiulator.R.drawable.ic_star,v->Toast.makeText(this,"Thanks for supporting Team Celeste! Donation link coming soon.",Toast.LENGTH_LONG).show());
     }
 
     private void setting(String title,String sub,int icon,View.OnClickListener click) {
