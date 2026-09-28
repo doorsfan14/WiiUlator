@@ -11,6 +11,7 @@ public enum WiiULibError: Error {
 public final class WiiULib {
     public let memory = WiiUMemory()
     public let cpu = PowerPCCPU()
+    public let system = WiiUSystem()
     public private(set) var instructionCount: UInt64 = 0
     public private(set) var entryPoint: UInt32 = 0
 
