@@ -1419,19 +1419,9 @@ struct SystemSettingsView: View {
                     value: EmulatorMemoryPolicy.format(EmulatorMemoryPolicy.recommendedMB)
                 )
 
-                if exceedsRecommendation {
-                    Label {
-                        Text("Putting a higher RAM amount than your device’s recommended memory will most likely cause crashes and game instability.")
-                    } icon: {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                    }
-                    .foregroundStyle(.orange)
+                Text("The recommendation is calculated from this device’s physical memory, leaving headroom for iOS and WiiUlator itself.")
                     .font(.footnote)
-                } else {
-                    Text("The recommendation is calculated from this device’s physical memory, leaving headroom for iOS and WiiUlator itself.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
+                    .foregroundStyle(.secondary)
             }
 
             Section("JIT") {
