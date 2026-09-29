@@ -395,22 +395,41 @@ private extension Array {
     }
 }
 
+private struct RemoteGameIcon<Placeholder: View>: View {
+    let url: URL
+    let placeholder: Placeholder
+    @State private var image: UIImage?
+
+    var body: some View {
+        Group {
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                placeholder
+            }
+        }
+        .task(id: url) {
+            var request = URLRequest(url: url)
+            request.timeoutInterval = 15
+            request.setValue("WiiUlator/1.0", forHTTPHeaderField: "User-Agent")
+            guard let (data, response) = try? await URLSession.shared.data(for: request),
+                  let http = response as? HTTPURLResponse,
+                  200..<300 ~= http.statusCode,
+                  let decoded = UIImage(data: data) else { return }
+            await MainActor.run { image = decoded }
+        }
+    }
+}
+
 private struct GameCoverView: View {
     let game: LibraryGame
 
     var body: some View {
         ZStack {
             if let coverURL = game.coverURL {
-                AsyncImage(url: coverURL) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    default:
-                        placeholder
-                    }
-                }
+                RemoteGameIcon(url: coverURL, placeholder: placeholder)
             } else {
                 placeholder
             }
