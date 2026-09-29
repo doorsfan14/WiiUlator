@@ -6,13 +6,14 @@ final class WiiULib {
  final WiiUSystem system=new WiiUSystem();
  final EmulatorMemory memory=system.memory;
  final PowerPCCPU cpu=system.cpu;
+ final CafeKernel kernel=system.kernel;
  WiiUAudio audio(){return system.audio;}
  long instructions;
  int entry;
 
  void reset(){system.reset();instructions=0;entry=0;}
  void load(byte[] data,int address,int entryPoint){reset();memory.load(data,address);entry=entryPoint;cpu.pc=entryPoint;}
- void run(int count){if(count<=0)return;for(int i=0;i<count;i++){cpu.step(memory);instructions++;system.cycles++;if(cpu.unsupported!=0)break;}}
+ void run(int count){if(count<=0)return;for(int i=0;i<count;i++){cpu.step(memory);if(cpu.syscall>=0)kernel.dispatch(cpu,memory);instructions++;system.cycles++;if(cpu.unsupported!=0||kernel.exited)break;}}
  boolean isStopped(){return cpu.unsupported!=0;}
  int programCounter(){return cpu.pc;}
  static int u16(byte[]d,int o){return ((d[o]&255)<<8)|(d[o+1]&255);}
