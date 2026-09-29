@@ -8,12 +8,14 @@ final class WiiUSystem {
 
     final EmulatorMemory memory = new EmulatorMemory();
     final PowerPCCPU cpu = new PowerPCCPU();
+    final CafeKernel kernel = new CafeKernel();
     final WiiUAudio audio = new WiiUAudio();
     long cycles;
 
     void reset() {
         memory.reset();
         cpu.reset();
+        kernel.reset();
         audio.reset();
         cycles = 0;
     }
@@ -28,8 +30,9 @@ final class WiiUSystem {
         if (instructions <= 0) return;
         for (int i = 0; i < instructions; i++) {
             cpu.step(memory);
+            if (cpu.syscall != 0 || cpu.last == 0x44000002) kernel.dispatch(cpu, memory);
             cycles++;
-            if (cpu.unsupported != 0) break;
+            if (cpu.unsupported != 0 || kernel.exited) break;
         }
     }
 
