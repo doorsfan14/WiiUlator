@@ -2,7 +2,7 @@ package net.teamceleste.wiiulator;
 
 final class PowerPCCPU {
  final int[] r=new int[32]; int pc,cr,lr,ctr,xer,last,unsupported,syscall;
- void reset(){java.util.Arrays.fill(r,0);pc=cr=lr=ctr=xer=last=unsupported=syscall=0;}
+ void reset(){java.util.Arrays.fill(r,0);pc=cr=lr=ctr=xer=last=unsupported=0;syscall=-1;}
  void step(EmulatorMemory m){int cur=pc;int ins=m.read32(cur);last=ins;unsupported=0;pc+=4;int op=ins>>>26;
   switch(op){
    case 7: {int d=ins>>>21&31,a=ins>>>16&31;r[d]=r[a]*(short)(ins&65535);break;}
