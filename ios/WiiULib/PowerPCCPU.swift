@@ -7,6 +7,7 @@ public final class PowerPCCPU {
     public var linkRegister: UInt32 = 0
     public var countRegister: UInt32 = 0
     public var xer: UInt32 = 0
+    public private(set) var syscall: UInt32? = nil
     public private(set) var lastInstruction: UInt32 = 0
     public private(set) var unsupportedInstruction: UInt32 = 0
 
@@ -17,6 +18,7 @@ public final class PowerPCCPU {
         linkRegister = 0
         countRegister = 0
         xer = 0
+        syscall = nil
         lastInstruction = 0
         unsupportedInstruction = 0
     }
@@ -49,6 +51,9 @@ public final class PowerPCCPU {
 
         case 16:
             branchConditional(instruction, currentPC: currentPC)
+
+        case 17:
+            syscall = UInt32((instruction >> 5) & 0x1FFFFF)
 
         case 18:
             let li = instruction & 0x03FFFFFC
