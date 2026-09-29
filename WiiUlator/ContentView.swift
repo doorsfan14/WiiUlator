@@ -1967,39 +1967,6 @@ final class GameLibraryStore: ObservableObject {
         load()
         loadFavorites()
         prepareGamesFolder()
-        seedDemoGamesIfNeeded()
-    }
-
-    private func seedDemoGamesIfNeeded() {
-        guard games.isEmpty else { return }
-
-        games = [
-            LibraryGame(
-                name: "Super Mario 3D World",
-                provider: "Nintendo",
-                version: "1.0.0",
-                titleID: "0005000010145D00",
-                path: Self.gamesFolderURL.appendingPathComponent("Demo-Super-Mario-3D-World.rpx").path,
-                isDemo: true
-            ),
-            LibraryGame(
-                name: "Mario Kart 8",
-                provider: "Nintendo",
-                version: "1.0.0",
-                titleID: "000500001010EC00",
-                path: Self.gamesFolderURL.appendingPathComponent("Demo-Mario-Kart-8.rpx").path,
-                isDemo: true
-            ),
-            LibraryGame(
-                name: "Splatoon",
-                provider: "Nintendo",
-                version: "1.0.0",
-                titleID: "0005000010176900",
-                path: Self.gamesFolderURL.appendingPathComponent("Demo-Splatoon.rpx").path,
-                isDemo: true
-            )
-        ]
-        save()
     }
 
     func isFavorite(_ game: LibraryGame) -> Bool {
