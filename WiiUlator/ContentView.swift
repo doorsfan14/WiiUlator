@@ -192,10 +192,11 @@ private struct LibraryCarouselView: View {
     let onFavorite: (LibraryGame) -> Void
 
     @State private var currentIndex = 0
+    @State private var scrollTarget: UUID?
     @GestureState private var dragOffset: CGFloat = 0
 
     private let cardWidth: CGFloat = 285
-    private let spacing: CGFloat = 18
+    private let slotSpacing: CGFloat = 18
 
     private var selectedIndex: Int {
         guard let selectedGameID,
@@ -207,81 +208,98 @@ private struct LibraryCarouselView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let centerX = proxy.size.width / 2
-            let stride = cardWidth + spacing
+            let sideInset = max((proxy.size.width - cardWidth) / 2, 18)
 
-            VStack(spacing: 0) {
-                ZStack(alignment: .top) {
-                    if let selectedGame = games[safe: selectedIndex] {
-                        GameCoverView(game: selectedGame)
-                            .frame(width: cardWidth, height: cardWidth)
-                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                            .shadow(color: .black.opacity(0.16), radius: 18, y: 10)
+            ZStack(alignment: .top) {
+                ScrollViewReader { reader in
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: slotSpacing) {
+                            ForEach(games) { game in
+                                let index = games.firstIndex(of: game) ?? 0
+                                let isSelected = index == selectedIndex
 
-                        GameCoverView(game: selectedGame)
-                            .frame(width: cardWidth, height: cardWidth)
-                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                            .scaleEffect(x: 1, y: -1)
-                            .mask(
-                                LinearGradient(
-                                    stops: [
-                                        .init(color: .white, location: 0),
-                                        .init(color: .white.opacity(0.58), location: 0.24),
-                                        .init(color: .white.opacity(0.22), location: 0.55),
-                                        .init(color: .clear, location: 1)
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                            .offset(y: cardWidth)
-                            .allowsHitTesting(false)
-                    }
-
-                    if games.count > 1 {
-                        HStack(spacing: spacing) {
-                            ForEach(Array(games.enumerated()), id: \.element.id) { index, game in
-                                GameCoverView(game: game)
-                                    .frame(width: cardWidth, height: cardWidth)
-                                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                                    .scaleEffect(index == selectedIndex ? 1 : 0.72)
-                                    .opacity(index == selectedIndex ? 0 : 0.95)
-                                    .onTapGesture {
-                                        withAnimation(.easeOut(duration: 0.22)) {
-                                            currentIndex = index
-                                            selectedGameID = game.id
-                                        }
-                                    }
+                                VStack(spacing: 0) {
+                                    GameCoverView(game: game)
+                                        .frame(width: cardWidth, height: cardWidth)
+                                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                                        .scaleEffect(isSelected ? 1.0 : 0.62)
+                                        .shadow(
+                                            color: .black.opacity(isSelected ? 0.18 : 0.10),
+                                            radius: isSelected ? 18 : 8,
+                                            y: isSelected ? 10 : 5
+                                        )
+                                }
+                                .frame(width: cardWidth, height: 405, alignment: .top)
+                                .id(game.id)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    select(index, reader: reader)
+                                }
                             }
                         }
-                        .frame(width: CGFloat(games.count) * cardWidth + CGFloat(max(games.count - 1, 0)) * spacing)
-                        .offset(
-                            x: centerX - cardWidth / 2 - CGFloat(selectedIndex) * stride + dragOffset
-                        )
-                        .contentShape(Rectangle())
-                        .gesture(
-                            DragGesture(minimumDistance: 12)
-                                .updating($dragOffset) { value, state, _ in
-                                    state = value.translation.width
+                        .padding(.horizontal, sideInset)
+                    }
+                    .scrollDisabled(true)
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 12)
+                            .updating($dragOffset) { value, state, _ in
+                                state = value.translation.width
+                            }
+                            .onEnded { value in
+                                let threshold = cardWidth * 0.18
+                                var next = selectedIndex
+
+                                if value.translation.width < -threshold {
+                                    next = min(selectedIndex + 1, games.count - 1)
+                                } else if value.translation.width > threshold {
+                                    next = max(selectedIndex - 1, 0)
                                 }
-                                .onEnded { value in
-                                    let threshold = cardWidth * 0.22
-                                    var next = selectedIndex
-                                    if value.translation.width < -threshold {
-                                        next = min(selectedIndex + 1, games.count - 1)
-                                    } else if value.translation.width > threshold {
-                                        next = max(selectedIndex - 1, 0)
-                                    }
-                                    withAnimation(.easeOut(duration: 0.24)) {
-                                        currentIndex = next
-                                        selectedGameID = games[next].id
-                                    }
+
+                                withAnimation(.interactiveSpring(response: 0.32, dampingFraction: 0.86)) {
+                                    currentIndex = next
+                                    selectedGameID = games[next].id
+                                    reader.scrollTo(games[next].id, anchor: .center)
                                 }
-                        )
+                            }
+                    )
+                    .onAppear {
+                        guard let game = games[safe: selectedIndex] else { return }
+                        DispatchQueue.main.async {
+                            reader.scrollTo(game.id, anchor: .center)
+                        }
+                    }
+                    .onChange(of: selectedGameID) { newValue in
+                        guard let newValue else { return }
+                        if let index = games.firstIndex(where: { $0.id == newValue }) {
+                            currentIndex = index
+                            withAnimation(.easeOut(duration: 0.22)) {
+                                reader.scrollTo(newValue, anchor: .center)
+                            }
+                        }
                     }
                 }
-                .frame(height: 405)
-                .clipped()
+
+                if let selectedGame = games[safe: selectedIndex] {
+                    GameCoverView(game: selectedGame)
+                        .frame(width: cardWidth, height: cardWidth)
+                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .scaleEffect(x: 1, y: -1)
+                        .mask(
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .white.opacity(0.78), location: 0),
+                                    .init(color: .white.opacity(0.42), location: 0.22),
+                                    .init(color: .white.opacity(0.12), location: 0.56),
+                                    .init(color: .clear, location: 1)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .offset(y: cardWidth - 2)
+                        .allowsHitTesting(false)
+                }
 
                 if let selectedGame = games[safe: selectedIndex] {
                     VStack(spacing: 5) {
@@ -333,15 +351,16 @@ private struct LibraryCarouselView: View {
                                     .frame(width: 44, height: 44)
                             }
                             .buttonStyle(.bordered)
-                            .accessibilityLabel(isFavorite(selectedGame) ? "Remove from Favorites" : "Add to Favorites")
                         }
                         .padding(.top, 5)
                     }
                     .padding(.horizontal, 4)
+                    .frame(maxWidth: .infinity)
                     .background(.clear)
-                    .offset(y: -108)
+                    .offset(y: 300)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .onAppear {
             if let index = games.firstIndex(where: { $0.id == selectedGameID }) {
@@ -351,18 +370,15 @@ private struct LibraryCarouselView: View {
                 selectedGameID = games[0].id
             }
         }
-        .onChange(of: selectedGameID) { newValue in
-            if let newValue, let index = games.firstIndex(where: { $0.id == newValue }) {
-                currentIndex = index
-            }
-        }
     }
-}
 
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        guard indices.contains(index) else { return nil }
-        return self[index]
+    private func select(_ index: Int, reader: ScrollViewProxy) {
+        guard games.indices.contains(index) else { return }
+        withAnimation(.interactiveSpring(response: 0.32, dampingFraction: 0.86)) {
+            currentIndex = index
+            selectedGameID = games[index].id
+            reader.scrollTo(games[index].id, anchor: .center)
+        }
     }
 }
 
