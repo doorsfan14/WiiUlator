@@ -829,6 +829,7 @@ struct SettingsView: View {
                         Text("Portuguese").tag("pt")
                         Text("Japanese").tag("ja")
                         Text("Chinese").tag("zh-Hans")
+                        Text("French").tag("fr")
 
                         if britishEnglishUnlocked {
                             Text("English (UK) ☕").tag("en-GB")
