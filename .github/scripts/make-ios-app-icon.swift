@@ -1,4 +1,5 @@
 import AppKit
+import CoreImage
 import Foundation
 
 guard CommandLine.arguments.count == 3 else {
@@ -26,6 +27,21 @@ let sourceRect = NSRect(origin: .zero, size: sourceCanvasSize)
 background.draw(in: sourceRect, from: NSRect(origin: .zero, size: background.size), operation: .copy, fraction: 1.0)
 foreground.draw(in: sourceRect, from: NSRect(origin: .zero, size: foreground.size), operation: .sourceOver, fraction: 1.0)
 composed.unlockFocus()
+
+func invertedImage(_ image: NSImage) -> NSImage? {
+    guard let tiff = image.tiffRepresentation,
+          let bitmap = NSBitmapImageRep(data: tiff),
+          let ciImage = CIImage(bitmapImageRep: bitmap),
+          let filter = CIFilter(name: "CIColorInvert") else { return nil }
+    filter.setValue(ciImage, forKey: kCIInputImageKey)
+    guard let output = filter.outputImage else { return nil }
+    let rep = NSCIImageRep(ciImage: output)
+    let result = NSImage(size: image.size)
+    result.addRepresentation(rep)
+    return result
+}
+
+let darkForeground = invertedImage(foreground)
 
 let sizes: [(String, CGFloat)] = [
     ("WiiUlator-60@2x.png", 120),
@@ -55,4 +71,26 @@ for (filename, pixels) in sizes {
 
     try png.write(to: outputDirectory.appendingPathComponent(filename))
     print("Generated \(filename)")
+
+    if let darkForeground {
+        let dark = NSImage(size: outputSize)
+        dark.lockFocus()
+        NSColor(calibratedWhite: 0.22, alpha: 1.0).setFill()
+        NSRect(origin: .zero, size: outputSize).fill()
+        darkForeground.draw(in: NSRect(origin: .zero, size: outputSize),
+                            from: NSRect(origin: .zero, size: darkForeground.size),
+                            operation: .sourceOver,
+                            fraction: 1.0)
+        dark.unlockFocus()
+
+        guard let darkTiff = dark.tiffRepresentation,
+              let darkBitmap = NSBitmapImageRep(data: darkTiff),
+              let darkPng = darkBitmap.representation(using: .png, properties: [:]) else {
+            fputs("Unable to encode dark \\(filename).\\n", stderr)
+            exit(1)
+        }
+        let darkFilename = filename.replacingOccurrences(of: ".png", with: "-dark.png")
+        try darkPng.write(to: outputDirectory.appendingPathComponent(darkFilename))
+        print("Generated \\(darkFilename)")
+    }
 }
