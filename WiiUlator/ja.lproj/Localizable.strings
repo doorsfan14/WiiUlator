@@ -96,3 +96,20 @@
 "Japanese" = "日本語";
 "Chinese" = "中国語";
 "System Language" = "システム言語";
+
+"Favorites" = "お気に入り";
+"No Favorites" = "お気に入りなし";
+"Favourite games will appear here." = "お気に入りのゲームがここに表示されます。";
+"Search favorites" = "お気に入りを検索";
+"Remove from Favorites" = "お気に入りから削除";
+"Add to Favorites" = "お気に入りに追加";
+"Credits" = "クレジット";
+"Main Developer" = "メイン開発者";
+"doorsfan14" = "doorsfan14";
+"Buy us a coffee" = "コーヒーをごちそうする";
+"Wii U Region" = "Wii Uの地域";
+"Nintendo Update Service" = "Nintendo更新サービス";
+"Invalid Nintendo update service URL" = "Nintendo更新サービスのURLが無効です";
+"Invalid Nintendo server response" = "Nintendoサーバーからの無効な応答";
+"Nintendo returned no system-title metadata" = "Nintendoからシステムタイトルのメタデータが返されませんでした";
+"Connection to Nintendo NUS failed" = "Nintendo NUSへの接続に失敗しました";
