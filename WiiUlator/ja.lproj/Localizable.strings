@@ -134,3 +134,10 @@
 "Enabled" = "有効";
 "Not Enabled" = "無効";
 "Imported games are copied into WiiUlator's app container at Documents/games. Game files are not included with WiiUlator." = "インポートしたゲームはWiiUlatorのアプリコンテナ内のDocuments/gamesにコピーされます。ゲームファイルはWiiUlatorに含まれていません。";
+
+"Nintendo documents Wii U system updates as Internet-delivered updates, with version 5.5.6 U listed as the latest system-menu release. WiiUlator queries Nintendo's Wii U NUS service for update metadata. Proprietary system software is not bundled with WiiUlator and is not silently copied into the app." = "NintendoはWii Uのシステムアップデートをインターネット経由で配信される更新として案内しており、システムメニューの最新リリースとしてバージョン5.5.6 Uが掲載されています。WiiUlatorはNintendoのWii U NUSサービスに更新メタデータを問い合わせます。システムのプロプライエタリソフトウェアはWiiUlatorに含まれず、アプリに密かにコピーされることもありません。";
+"The performance overlay appears over the game while emulating. Metrics become emulator-backed as the CPU, GPU, audio, and frame scheduler are implemented." = "パフォーマンスオーバーレイはエミュレーション中にゲーム画面上へ表示されます。CPU、GPU、オーディオ、フレームスケジューラーの実装が進むにつれて、メトリクスはエミュレーターから取得されるようになります。";
+"WiiUlator uses GameTDB-compatible square Wii U artwork when a title ID is available. Imported games without recognized metadata use a local placeholder until game metadata parsing is implemented." = "WiiUlatorはタイトルIDが利用可能な場合、GameTDB互換の正方形Wii Uアートワークを使用します。認識されたメタデータがないインポート済みゲームは、メタデータ解析が実装されるまでローカルのプレースホルダーを使用します。";
+"WiiUlator is open source and developed by Team Celeste." = "WiiUlatorはオープンソースで、Team Celesteによって開発されています。";
+"The recommendation is calculated from this device’s physical memory, leaving headroom for iOS and WiiUlator itself." = "推奨値はこのデバイスの物理メモリを基に計算され、iOSとWiiUlator自体のための余裕を残します。";
+"Putting a higher RAM amount than your device’s recommended memory will most likely cause crashes and game instability." = "デバイスの推奨メモリ量を超えるRAMを割り当てると、クラッシュやゲームの不安定化が発生する可能性が高くなります。";
