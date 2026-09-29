@@ -106,11 +106,12 @@ struct LibraryView: View {
                                         }
                                     )
                                     .tag(Optional(game.id))
-                                    .padding(.horizontal, 22)
+                                    .padding(.horizontal, 42)
                                 }
                             }
                             .tabViewStyle(.page(indexDisplayMode: filteredGames.count > 1 ? .automatic : .never))
-                            .frame(height: 590)
+                            .indexViewStyle(.page(backgroundDisplayMode: .never))
+                            .frame(height: 500)
                         }
                     }
                 } else {
@@ -204,41 +205,40 @@ private struct LibraryHeroGameView: View {
     var body: some View {
         VStack(spacing: 0) {
             ZStack(alignment: .top) {
+                // The carousel itself is horizontally paged by the parent TabView.
+                // Keep neighbouring cards visible by making each page narrower than the viewport.
                 GameCoverView(game: game)
-                    .frame(maxWidth: 355)
-                    .aspectRatio(1, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-                    .shadow(color: .black.opacity(0.18), radius: 22, y: 12)
+                    .frame(width: 285, height: 285)
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .shadow(color: .black.opacity(0.16), radius: 18, y: 10)
 
                 GameCoverView(game: game)
-                    .frame(maxWidth: 355)
-                    .aspectRatio(1, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                    .frame(width: 285, height: 285)
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                     .scaleEffect(x: 1, y: -1)
-                    .opacity(0.24)
-                    .blur(radius: 1.2)
+                    .opacity(0.20)
+                    .blur(radius: 1)
                     .mask(
                         LinearGradient(
                             stops: [
                                 .init(color: .white, location: 0),
-                                .init(color: .white.opacity(0.38), location: 0.48),
+                                .init(color: .white.opacity(0.32), location: 0.42),
                                 .init(color: .clear, location: 1)
                             ],
                             startPoint: .top,
                             endPoint: .bottom
                         )
                     )
-                    .offset(y: 360)
+                    .offset(y: 285)
                     .allowsHitTesting(false)
             }
-            .frame(maxWidth: 355)
-            .frame(height: 500, alignment: .top)
+            .frame(height: 405)
             .clipped()
 
             VStack(spacing: 5) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                HStack(alignment: .firstTextBaseline, spacing: 7) {
                     Text(game.name)
-                        .font(.title2.weight(.bold))
+                        .font(.title3.weight(.bold))
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
 
@@ -272,7 +272,7 @@ private struct LibraryHeroGameView: View {
                         Label("Launch", systemImage: "play.fill")
                             .font(.headline)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
+                            .padding(.vertical, 11)
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(game.isDemo)
@@ -281,7 +281,7 @@ private struct LibraryHeroGameView: View {
                         onFavorite()
                     } label: {
                         Image(systemName: isFavorite ? "star.fill" : "star")
-                            .frame(width: 46, height: 46)
+                            .frame(width: 44, height: 44)
                     }
                     .buttonStyle(.bordered)
                     .accessibilityLabel(isFavorite ? "Remove from Favorites" : "Add to Favorites")
@@ -289,67 +289,60 @@ private struct LibraryHeroGameView: View {
                 .padding(.top, 5)
             }
             .padding(.horizontal, 4)
-            .background(.clear)
         }
+        .frame(maxWidth: .infinity)
     }
 }
 
 private struct GameCoverView: View {
     let game: LibraryGame
 
-    private var accent: Color {
-        switch game.coverStyle {
-        case 0: return .blue
-        case 1: return .orange
-        default: return .purple
+    var body: some View {
+        ZStack {
+            if let coverURL = game.coverURL {
+                AsyncImage(url: coverURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    default:
+                        placeholder
+                    }
+                }
+            } else {
+                placeholder
+            }
+        }
+        .background(.quaternary)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(.white.opacity(0.14), lineWidth: 1)
         }
     }
 
-    var body: some View {
+    private var placeholder: some View {
         ZStack {
             LinearGradient(
-                colors: [accent.opacity(0.92), .black.opacity(0.86)],
+                colors: [.blue.opacity(0.88), .black.opacity(0.86)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
 
-            Circle()
-                .fill(.white.opacity(0.13))
-                .frame(width: 230)
-                .blur(radius: 1)
-                .offset(x: 95, y: -105)
-
-            Circle()
-                .fill(.black.opacity(0.22))
-                .frame(width: 260)
-                .offset(x: -100, y: 120)
-
-            VStack(spacing: 12) {
-                Image(systemName: game.coverSymbol)
-                    .font(.system(size: 78, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.92))
+            VStack(spacing: 10) {
+                Image(systemName: "gamecontroller.fill")
+                    .font(.system(size: 58, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.9))
 
                 Text(game.name)
-                    .font(.system(size: 30, weight: .heavy, design: .rounded))
+                    .font(.system(.title3, design: .rounded).weight(.heavy))
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
-                    .minimumScaleFactor(0.55)
                     .lineLimit(3)
-                    .padding(.horizontal, 24)
-
-                if game.isDemo {
-                    Text("WiiUlator Demo")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.78))
-                        .textCase(.uppercase)
-                }
+                    .minimumScaleFactor(0.6)
+                    .padding(.horizontal, 20)
             }
-            .padding(26)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(.white.opacity(0.14), lineWidth: 1)
         }
     }
 }
@@ -1789,6 +1782,19 @@ struct LibraryGame: Identifiable, Codable, Hashable {
     var path: String
     var isDemo: Bool
 
+    var coverURL: URL? {
+        switch titleID {
+        case "0005000010145D00":
+            return URL(string: "https://art.gametdb.com/wiiu/cover/US/Super%20Mario%203D%20World.jpg")
+        case "000500001010EC00":
+            return URL(string: "https://art.gametdb.com/wiiu/cover/US/AMKE01.jpg")
+        case "0005000010176900":
+            return URL(string: "https://art.gametdb.com/wiiu/cover/US/0005000010176900.jpg")
+        default:
+            return nil
+        }
+    }
+
     var coverStyle: Int {
         if isDemo {
             switch name {
@@ -1852,7 +1858,7 @@ final class GameLibraryStore: ObservableObject {
                 name: "Super Mario 3D World",
                 provider: "Nintendo",
                 version: "1.0.0",
-                titleID: "DEMO-MARIO3D",
+                titleID: "0005000010145D00",
                 path: Self.gamesFolderURL.appendingPathComponent("Demo-Super-Mario-3D-World.rpx").path,
                 isDemo: true
             ),
@@ -1860,7 +1866,7 @@ final class GameLibraryStore: ObservableObject {
                 name: "Mario Kart 8",
                 provider: "Nintendo",
                 version: "1.0.0",
-                titleID: "DEMO-MARIOKART",
+                titleID: "000500001010EC00",
                 path: Self.gamesFolderURL.appendingPathComponent("Demo-Mario-Kart-8.rpx").path,
                 isDemo: true
             ),
@@ -1868,7 +1874,7 @@ final class GameLibraryStore: ObservableObject {
                 name: "Splatoon",
                 provider: "Nintendo",
                 version: "1.0.0",
-                titleID: "DEMO-SPLATOON",
+                titleID: "0005000010176900",
                 path: Self.gamesFolderURL.appendingPathComponent("Demo-Splatoon.rpx").path,
                 isDemo: true
             )
