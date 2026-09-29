@@ -9,6 +9,7 @@ public final class WiiUSystem {
     public let memory = WiiUMemory()
     public let cpu = PowerPCCPU()
     public let audio = WiiUAudio()
+    public let kernel = CafeKernel()
     public private(set) var cycles: UInt64 = 0
 
     public init() {}
@@ -17,6 +18,7 @@ public final class WiiUSystem {
         memory.reset()
         cpu.reset()
         audio.reset()
+        kernel.reset()
         cycles = 0
     }
 
@@ -34,12 +36,13 @@ public final class WiiUSystem {
         guard instructions > 0 else { return }
         for _ in 0..<instructions {
             cpu.step(memory: memory)
+            if cpu.syscall != nil { kernel.dispatch(cpu: cpu, memory: memory) }
             tick()
-            if cpu.unsupportedInstruction != 0 { break }
+            if cpu.unsupportedInstruction != 0 || kernel.exited { break }
         }
     }
 
     public var isStopped: Bool {
-        cpu.unsupportedInstruction != 0
+        cpu.unsupportedInstruction != 0 || kernel.exited
     }
 }
