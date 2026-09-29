@@ -886,20 +886,31 @@ struct SettingsView: View {
 
                 Section("Credits") {
                     HStack(spacing: 12) {
-                        Image(systemName: "person.crop.circle")
-                            .font(.title3)
-                            .foregroundStyle(.tint)
-                            .frame(width: 28)
-
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text("doorsfan14")
-                                .font(.body)
-                            Text("Main Developer")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
+                        AsyncImage(url: URL(string: "https://github.com/doorsfan14.png")) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            default:
+                                Image(systemName: "person.crop.circle")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .foregroundStyle(.secondary)
+                                    .padding(3)
+                            }
                         }
+                        .frame(width: 28, height: 28)
+                        .clipShape(Circle())
+
+                        Text("doorsfan14")
+                            .font(.body)
 
                         Spacer()
+
+                        Text("Main Developer")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
                     .contentShape(Rectangle())
                     .padding(.vertical, 2)
