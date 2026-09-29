@@ -96,3 +96,20 @@
 "Japanese" = "Japonês";
 "Chinese" = "Chinês";
 "System Language" = "Idioma do sistema";
+
+"Favorites" = "Favoritos";
+"No Favorites" = "Sem favoritos";
+"Favourite games will appear here." = "Os jogos favoritos aparecerão aqui.";
+"Search favorites" = "Pesquisar favoritos";
+"Remove from Favorites" = "Remover dos favoritos";
+"Add to Favorites" = "Adicionar aos favoritos";
+"Credits" = "Créditos";
+"Main Developer" = "Programador principal";
+"doorsfan14" = "doorsfan14";
+"Buy us a coffee" = "Pague-nos um café";
+"Wii U Region" = "Região da Wii U";
+"Nintendo Update Service" = "Serviço de atualização da Nintendo";
+"Invalid Nintendo update service URL" = "URL do serviço de atualização da Nintendo inválido";
+"Invalid Nintendo server response" = "Resposta inválida do servidor da Nintendo";
+"Nintendo returned no system-title metadata" = "A Nintendo não devolveu metadados dos títulos do sistema";
+"Connection to Nintendo NUS failed" = "Falha ao ligar ao Nintendo NUS";
