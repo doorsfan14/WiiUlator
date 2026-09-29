@@ -1889,7 +1889,7 @@ struct LibraryGame: Identifiable, Codable, Hashable {
             return URL(string: "https://www.mariowiki.com/Special:Redirect/file/Super_Mario_3D_World-menu_icon.png")
         case "000500001010EC00":
             return URL(string: "https://www.mariowiki.com/Special:Redirect/file/Mario_Kart_8-menu_icon.png")
-        case "0005000010176900":
+        case "0005000010176A00":
             return URL(string: "https://www.mariowiki.com/Special:Redirect/file/Splatoon-menu_icon.png")
         default:
             return nil
