@@ -885,26 +885,24 @@ struct SettingsView: View {
                 }
 
                 Section("Credits") {
-                    HStack(spacing: 14) {
-                        AsyncImage(url: URL(string: "https://avatars.githubusercontent.com/u/291543116?v=4")) { phase in
-                            switch phase {
-                            case .success(let image):
-                                image.resizable().scaledToFill()
-                            default:
-                                Image(systemName: "person.crop.circle.fill")
-                                    .resizable().scaledToFill()
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .frame(width: 52, height: 52)
-                        .clipShape(Circle())
+                    HStack(spacing: 12) {
+                        Image(systemName: "person.crop.circle")
+                            .font(.title3)
+                            .foregroundStyle(.tint)
+                            .frame(width: 28)
 
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("doorsfan14").font(.headline)
-                            Text("Main Developer").font(.subheadline).foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("doorsfan14")
+                                .font(.body)
+                            Text("Main Developer")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
                         }
+
+                        Spacer()
                     }
-                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
+                    .padding(.vertical, 2)
                 }
 
                 Section {
