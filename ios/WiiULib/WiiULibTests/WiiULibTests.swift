@@ -48,6 +48,22 @@ final class WiiULibTests: XCTestCase {
         XCTAssertEqual(core.cpu.linkRegister, address + 4)
     }
 
+    func testCafeKernelSyscall() {
+        let core = WiiULib()
+        let address: UInt32 = 0x3000
+
+        // li r0,0x1900; sc
+        core.load(data: Data([0x38, 0x00, 0x19, 0x00, 0x44, 0x00, 0x00, 0x02]), at: address, entryPoint: address)
+        core.cpu.registers[3] = 7
+        core.run(instructions: 2)
+
+        XCTAssertTrue(core.isStopped)
+        XCTAssertTrue(core.kernel.exited)
+        XCTAssertEqual(core.kernel.exitCode, 7)
+        XCTAssertEqual(core.kernel.lastSyscall, CafeKernel.appExit)
+        XCTAssertEqual(core.kernel.dispatchCount, 1)
+    }
+
     func testELFLoader() throws {
         let core = WiiULib()
 
