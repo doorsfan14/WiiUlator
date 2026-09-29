@@ -1,8 +1,8 @@
 package net.teamceleste.wiiulator;
 
 final class PowerPCCPU {
- final int[] r=new int[32]; int pc,cr,lr,ctr,xer,last,unsupported;
- void reset(){java.util.Arrays.fill(r,0);pc=cr=lr=ctr=xer=last=unsupported=0;}
+ final int[] r=new int[32]; int pc,cr,lr,ctr,xer,last,unsupported,syscall;
+ void reset(){java.util.Arrays.fill(r,0);pc=cr=lr=ctr=xer=last=unsupported=syscall=0;}
  void step(EmulatorMemory m){int cur=pc;int ins=m.read32(cur);last=ins;unsupported=0;pc+=4;int op=ins>>>26;
   switch(op){
    case 7: {int d=ins>>>21&31,a=ins>>>16&31;r[d]=r[a]*(short)(ins&65535);break;}
@@ -10,11 +10,12 @@ final class PowerPCCPU {
    case 14: {int d=ins>>>21&31,a=ins>>>16&31;r[d]=base(a)+sign16(ins);break;}
    case 15: {int d=ins>>>21&31,a=ins>>>16&31;r[d]=base(a)+(sign16(ins)<<16);break;}
    case 16: branchCond(ins,cur);break;
+   case 17: syscall=r[0];break;
    case 18: {int li=ins&0x03fffffc;int t=((li&0x02000000)!=0?li|0xfc000000:li);if((ins&2)!=0)pc=t;if((ins&2)==0)pc=cur+t;if((ins&1)!=0)lr=cur+4;break;}
-   case 24:r[ins>>>16&31]=r[ins>>>21&31]|(ins&65535);break;
-   case 25:r[ins>>>16&31]=r[ins>>>21&31]|((ins&65535)<<16);break;
-   case 26:r[ins>>>16&31]=r[ins>>>21&31]^(ins&65535);break;
-   case 28:{int v=r[ins>>>21&31]&(ins&65535);r[ins>>>16&31]=v;cr=(cr&0x0fffffff)|((v==0?2:(v<0?8:4))<<28);break;}
+   case 24:{int s=ins>>>21&31,d=ins>>>16&31;r[d]=r[s]|(ins&65535);break;}
+   case 25:{int s=ins>>>21&31,d=ins>>>16&31;r[d]=r[s]|((ins&65535)<<16);break;}
+   case 26:{int s=ins>>>21&31,d=ins>>>16&31;r[d]=r[s]^(ins&65535);break;}
+   case 28:{int s=ins>>>21&31,d=ins>>>16&31;int v=r[s]&(ins&65535);r[d]=v;cr=(cr&0x0fffffff)|((v==0?2:(v<0?8:4))<<28);break;}
    case 32:r[ins>>>21&31]=m.read32(ea(ins));break;
    case 33:{int a=ea(ins);r[ins>>>16&31]=a;r[ins>>>21&31]=m.read32(a);break;}
    case 34:r[ins>>>21&31]=m.readU8(ea(ins));break;
@@ -32,7 +33,7 @@ final class PowerPCCPU {
  }
  int base(int a){return a==0?0:r[a];} int ea(int i){return base(i&31)+(short)i;}
  int sign16(int i){return (short)(i&65535);}
- boolean cond(int i){int bo=i>>>21&31,bi=i>>>16&31;boolean c=(bo&16)!=0||(((cr>>>(31-bi))&1)!=0)==((bo&8)!=0);return c;}
+ boolean cond(int i){int bo=i>>>21&31,bi=i>>>16&31;boolean crBit=((cr>>>(31-bi))&1)!=0;boolean condition=((bo&4)!=0)||(((bo&16)==0)?(crBit==((bo&8)!=0)):true);return condition&&((bo&4)!=0||!((bo&16)==0&&false));}
  void branchCond(int i,int cur){if(cond(i)){int bd=(short)(i&0xfffc);pc=((i&2)!=0?bd:cur+bd);}if((i&1)!=0)lr=cur+4;}
  void op31(int i,EmulatorMemory m,int cur){
   int xo=i>>>1&1023,s=i>>>21&31,a=i>>>16&31,b=i>>>11&31;
