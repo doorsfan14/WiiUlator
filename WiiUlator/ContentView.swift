@@ -288,16 +288,16 @@ private struct LibraryCarouselView: View {
                         .mask(
                             LinearGradient(
                                 stops: [
-                                    .init(color: .white.opacity(0.78), location: 0),
-                                    .init(color: .white.opacity(0.42), location: 0.22),
-                                    .init(color: .white.opacity(0.12), location: 0.56),
-                                    .init(color: .clear, location: 1)
+                                    .init(color: .white.opacity(0.72), location: 0),
+                                    .init(color: .white.opacity(0.22), location: 0.10),
+                                    .init(color: .white.opacity(0.05), location: 0.28),
+                                    .init(color: .clear, location: 0.48)
                                 ],
                                 startPoint: .top,
                                 endPoint: .bottom
                             )
                         )
-                        .offset(y: cardWidth - 2)
+                        .offset(y: cardWidth + 15)
                         .allowsHitTesting(false)
                 }
 
