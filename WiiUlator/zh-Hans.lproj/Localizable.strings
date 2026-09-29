@@ -113,3 +113,24 @@
 "Invalid Nintendo server response" = "Nintendo 服务器返回了无效响应";
 "Nintendo returned no system-title metadata" = "Nintendo 未返回系统标题元数据";
 "Connection to Nintendo NUS failed" = "连接 Nintendo NUS 失败";
+
+
+"French" = "法语";
+"Auto" = "自动";
+"Native" = "原生";
+"30 FPS = Full Emulation Speed" = "30 FPS = 完整模拟速度";
+"Metal is the primary graphics backend. Vulkan is experimental and may not be available on every device or iOS version." = "Metal 是主要图形后端。Vulkan 处于实验阶段，可能无法在所有设备或 iOS 版本上使用。";
+"This controls the internal emulated render resolution. It does not change the iPhone’s physical display resolution." = "此设置控制模拟器内部的渲染分辨率，不会改变 iPhone 的物理屏幕分辨率。";
+"Wii U games normally use 16:9. Select 4:3 for games or content designed for that display shape." = "Wii U 游戏通常使用 16:9。对于为 4:3 显示比例设计的游戏或内容，请选择 4:3。";
+"Custom button mapping will be available as the emulator input system is implemented." = "模拟器输入系统实现后，将提供自定义按键映射。";
+"WiiUlator does not use interface sound effects. Audio settings apply to emulated games." = "WiiUlator 不使用界面音效。音频设置适用于模拟的游戏。";
+"Memory" = "内存";
+"Maximum RAM" = "最大 RAM";
+"Recommended" = "推荐";
+"The recommendation is calculated from this device’s physical memory, leaving headroom for iOS and WiiUlator itself." = "推荐值根据此设备的物理内存计算，并为 iOS 和 WiiUlator 本身预留空间。";
+"High RAM Allocation" = "高 RAM 分配";
+"Putting a higher RAM amount than your device’s recommended memory will most likely cause crashes and game instability." = "分配超过设备推荐值的 RAM 很可能导致崩溃和游戏不稳定。";
+"PowerPC execution active" = "PowerPC 执行中";
+"Enabled" = "已启用";
+"Not Enabled" = "未启用";
+"Imported games are copied into WiiUlator's app container at Documents/games. Game files are not included with WiiUlator." = "导入的游戏会复制到 WiiUlator 应用容器的 Documents/games 中。WiiUlator 不包含游戏文件。";
