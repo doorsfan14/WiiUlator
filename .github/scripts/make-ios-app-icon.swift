@@ -86,11 +86,12 @@ for (filename, pixels) in sizes {
         guard let darkTiff = dark.tiffRepresentation,
               let darkBitmap = NSBitmapImageRep(data: darkTiff),
               let darkPng = darkBitmap.representation(using: .png, properties: [:]) else {
-            fputs("Unable to encode dark \\(filename).\\n", stderr)
+            fputs("Unable to encode dark \(filename).\n", stderr)
             exit(1)
         }
+
         let darkFilename = filename.replacingOccurrences(of: ".png", with: "-dark.png")
         try darkPng.write(to: outputDirectory.appendingPathComponent(darkFilename))
-        print("Generated \\(darkFilename)")
+        print("Generated \(darkFilename)")
     }
 }
