@@ -93,24 +93,12 @@ struct LibraryView: View {
                                     .padding(.bottom, 10)
                             }
 
-                            TabView(selection: Binding(
-                                get: { selectedGameID ?? filteredGames.first?.id },
-                                set: { selectedGameID = $0 }
-                            )) {
-                                ForEach(filteredGames) { game in
-                                    LibraryHeroGameView(
-                                        game: game,
-                                        isFavorite: library.isFavorite(game),
-                                        onFavorite: {
-                                            library.toggleFavorite(game)
-                                        }
-                                    )
-                                    .tag(Optional(game.id))
-                                    .padding(.horizontal, 42)
-                                }
-                            }
-                            .tabViewStyle(.page(indexDisplayMode: filteredGames.count > 1 ? .automatic : .never))
-                            .indexViewStyle(.page(backgroundDisplayMode: .never))
+                            LibraryCarouselView(
+                                games: filteredGames,
+                                selectedGameID: $selectedGameID,
+                                isFavorite: { library.isFavorite($0) },
+                                onFavorite: { library.toggleFavorite($0) }
+                            )
                             .frame(height: 500)
                         }
                     }
@@ -197,100 +185,184 @@ struct LibraryView: View {
     }
 }
 
-private struct LibraryHeroGameView: View {
-    let game: LibraryGame
-    let isFavorite: Bool
-    let onFavorite: () -> Void
+private struct LibraryCarouselView: View {
+    let games: [LibraryGame]
+    @Binding var selectedGameID: UUID?
+    let isFavorite: (LibraryGame) -> Bool
+    let onFavorite: (LibraryGame) -> Void
+
+    @State private var currentIndex = 0
+    @GestureState private var dragOffset: CGFloat = 0
+
+    private let cardWidth: CGFloat = 285
+    private let spacing: CGFloat = 18
+
+    private var selectedIndex: Int {
+        guard let selectedGameID,
+              let index = games.firstIndex(where: { $0.id == selectedGameID }) else {
+            return min(currentIndex, max(games.count - 1, 0))
+        }
+        return index
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
-            ZStack(alignment: .top) {
-                // The carousel itself is horizontally paged by the parent TabView.
-                // Keep neighbouring cards visible by making each page narrower than the viewport.
-                GameCoverView(game: game)
-                    .frame(width: 285, height: 285)
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .shadow(color: .black.opacity(0.16), radius: 18, y: 10)
+        GeometryReader { proxy in
+            let centerX = proxy.size.width / 2
+            let stride = cardWidth + spacing
 
-                GameCoverView(game: game)
-                    .frame(width: 285, height: 285)
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .scaleEffect(x: 1, y: -1)
-                    .opacity(0.20)
-                    .blur(radius: 1)
-                    .mask(
-                        LinearGradient(
-                            stops: [
-                                .init(color: .white, location: 0),
-                                .init(color: .white.opacity(0.32), location: 0.42),
-                                .init(color: .clear, location: 1)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
+            VStack(spacing: 0) {
+                ZStack(alignment: .top) {
+                    if let selectedGame = games[safe: selectedIndex] {
+                        GameCoverView(game: selectedGame)
+                            .frame(width: cardWidth, height: cardWidth)
+                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                            .shadow(color: .black.opacity(0.16), radius: 18, y: 10)
+
+                        GameCoverView(game: selectedGame)
+                            .frame(width: cardWidth, height: cardWidth)
+                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                            .scaleEffect(x: 1, y: -1)
+                            .mask(
+                                LinearGradient(
+                                    stops: [
+                                        .init(color: .white, location: 0),
+                                        .init(color: .white.opacity(0.58), location: 0.24),
+                                        .init(color: .white.opacity(0.22), location: 0.55),
+                                        .init(color: .clear, location: 1)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .offset(y: cardWidth)
+                            .allowsHitTesting(false)
+                    }
+
+                    if games.count > 1 {
+                        HStack(spacing: spacing) {
+                            ForEach(Array(games.enumerated()), id: \.element.id) { index, game in
+                                GameCoverView(game: game)
+                                    .frame(width: cardWidth, height: cardWidth)
+                                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                                    .scaleEffect(index == selectedIndex ? 1 : 0.72)
+                                    .opacity(index == selectedIndex ? 0 : 0.95)
+                                    .onTapGesture {
+                                        withAnimation(.easeOut(duration: 0.22)) {
+                                            currentIndex = index
+                                            selectedGameID = game.id
+                                        }
+                                    }
+                            }
+                        }
+                        .frame(width: CGFloat(games.count) * cardWidth + CGFloat(max(games.count - 1, 0)) * spacing)
+                        .offset(
+                            x: centerX - cardWidth / 2 - CGFloat(selectedIndex) * stride + dragOffset
                         )
-                    )
-                    .offset(y: 285)
-                    .allowsHitTesting(false)
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture(minimumDistance: 12)
+                                .updating($dragOffset) { value, state, _ in
+                                    state = value.translation.width
+                                }
+                                .onEnded { value in
+                                    let threshold = cardWidth * 0.22
+                                    var next = selectedIndex
+                                    if value.translation.width < -threshold {
+                                        next = min(selectedIndex + 1, games.count - 1)
+                                    } else if value.translation.width > threshold {
+                                        next = max(selectedIndex - 1, 0)
+                                    }
+                                    withAnimation(.easeOut(duration: 0.24)) {
+                                        currentIndex = next
+                                        selectedGameID = games[next].id
+                                    }
+                                }
+                        )
+                    }
+                }
+                .frame(height: 405)
+                .clipped()
+
+                if let selectedGame = games[safe: selectedIndex] {
+                    VStack(spacing: 5) {
+                        HStack(alignment: .firstTextBaseline, spacing: 7) {
+                            Text(selectedGame.name)
+                                .font(.title3.weight(.bold))
+                                .lineLimit(2)
+                                .multilineTextAlignment(.center)
+
+                            if isFavorite(selectedGame) {
+                                Image(systemName: "star.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.yellow)
+                            }
+                        }
+
+                        Text(selectedGame.provider)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        if !selectedGame.version.isEmpty {
+                            Text("Version \(selectedGame.version)")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        if let titleID = selectedGame.titleID, !titleID.isEmpty {
+                            Text(titleID)
+                                .font(.caption2.monospaced())
+                                .foregroundStyle(.tertiary)
+                        }
+
+                        HStack(spacing: 10) {
+                            NavigationLink {
+                                DemoGameView(game: selectedGame)
+                            } label: {
+                                Label("Launch", systemImage: "play.fill")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 11)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(selectedGame.isDemo)
+
+                            Button {
+                                onFavorite(selectedGame)
+                            } label: {
+                                Image(systemName: isFavorite(selectedGame) ? "star.fill" : "star")
+                                    .frame(width: 44, height: 44)
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityLabel(isFavorite(selectedGame) ? "Remove from Favorites" : "Add to Favorites")
+                        }
+                        .padding(.top, 5)
+                    }
+                    .padding(.horizontal, 4)
+                    .background(.clear)
+                    .offset(y: -108)
+                }
             }
-            .frame(height: 405)
-            .clipped()
-
-            VStack(spacing: 5) {
-                HStack(alignment: .firstTextBaseline, spacing: 7) {
-                    Text(game.name)
-                        .font(.title3.weight(.bold))
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
-
-                    if isFavorite {
-                        Image(systemName: "star.fill")
-                            .font(.caption)
-                            .foregroundStyle(.yellow)
-                    }
-                }
-
-                Text(game.provider)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                if !game.version.isEmpty {
-                    Text("Version \(game.version)")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-
-                if let titleID = game.titleID, !titleID.isEmpty {
-                    Text(titleID)
-                        .font(.caption2.monospaced())
-                        .foregroundStyle(.tertiary)
-                }
-
-                HStack(spacing: 10) {
-                    NavigationLink {
-                        DemoGameView(game: game)
-                    } label: {
-                        Label("Launch", systemImage: "play.fill")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 11)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(game.isDemo)
-
-                    Button {
-                        onFavorite()
-                    } label: {
-                        Image(systemName: isFavorite ? "star.fill" : "star")
-                            .frame(width: 44, height: 44)
-                    }
-                    .buttonStyle(.bordered)
-                    .accessibilityLabel(isFavorite ? "Remove from Favorites" : "Add to Favorites")
-                }
-                .padding(.top, 5)
-            }
-            .padding(.horizontal, 4)
         }
-        .frame(maxWidth: .infinity)
+        .onAppear {
+            if let index = games.firstIndex(where: { $0.id == selectedGameID }) {
+                currentIndex = index
+            } else if !games.isEmpty {
+                currentIndex = 0
+                selectedGameID = games[0].id
+            }
+        }
+        .onChange(of: selectedGameID) { newValue in
+            if let newValue, let index = games.firstIndex(where: { $0.id == newValue }) {
+                currentIndex = index
+            }
+        }
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        guard indices.contains(index) else { return nil }
+        return self[index]
     }
 }
 
@@ -1785,11 +1857,11 @@ struct LibraryGame: Identifiable, Codable, Hashable {
     var coverURL: URL? {
         switch titleID {
         case "0005000010145D00":
-            return URL(string: "https://art.gametdb.com/wiiu/cover/US/Super%20Mario%203D%20World.jpg")
+            return URL(string: "https://art.gametdb.com/wiiu/cover/US/ARDP01.jpg")
         case "000500001010EC00":
-            return URL(string: "https://art.gametdb.com/wiiu/cover/US/AMKE01.jpg")
+            return URL(string: "https://art.gametdb.com/wiiu/cover/US/AMKP01.jpg")
         case "0005000010176900":
-            return URL(string: "https://art.gametdb.com/wiiu/cover/US/0005000010176900.jpg")
+            return URL(string: "https://art.gametdb.com/wiiu/cover/US/AGMP01.jpg")
         default:
             return nil
         }
