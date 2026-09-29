@@ -96,3 +96,20 @@
 "Japanese" = "日语";
 "Chinese" = "中文";
 "System Language" = "系统语言";
+
+"Favorites" = "收藏";
+"No Favorites" = "没有收藏";
+"Favourite games will appear here." = "收藏的游戏会显示在这里。";
+"Search favorites" = "搜索收藏";
+"Remove from Favorites" = "从收藏中移除";
+"Add to Favorites" = "添加到收藏";
+"Credits" = "鸣谢";
+"Main Developer" = "主要开发者";
+"doorsfan14" = "doorsfan14";
+"Buy us a coffee" = "请我们喝杯咖啡";
+"Wii U Region" = "Wii U 地区";
+"Nintendo Update Service" = "Nintendo 更新服务";
+"Invalid Nintendo update service URL" = "Nintendo 更新服务 URL 无效";
+"Invalid Nintendo server response" = "Nintendo 服务器返回了无效响应";
+"Nintendo returned no system-title metadata" = "Nintendo 未返回系统标题元数据";
+"Connection to Nintendo NUS failed" = "连接 Nintendo NUS 失败";
