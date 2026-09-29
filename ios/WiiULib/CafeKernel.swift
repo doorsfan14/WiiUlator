@@ -24,8 +24,7 @@ public final class CafeKernel {
     }
 
     public func dispatch(cpu: PowerPCCPU, memory: WiiUMemory) {
-        guard let number = cpu.syscall else { return }
-        cpu.clearSyscall()
+        guard let number = cpu.consumeSyscall() else { return }
         lastSyscall = number
         dispatchCount += 1
 
@@ -75,11 +74,5 @@ public final class CafeKernel {
             print(output, terminator: "")
         }
         cpu.registers[3] = UInt32(output.utf8.count)
-    }
-}
-
-extension PowerPCCPU {
-    fileprivate func clearSyscall() {
-        syscall = nil
     }
 }
