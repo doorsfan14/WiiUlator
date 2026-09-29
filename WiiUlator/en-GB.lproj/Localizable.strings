@@ -96,3 +96,20 @@
 "Japanese" = "Japanese";
 "Chinese" = "Chinese";
 "System Language" = "System Language";
+
+"Favorites" = "Favourites";
+"No Favorites" = "No Favourites";
+"Favourite games will appear here." = "Favourite games will appear here.";
+"Search favorites" = "Search favourites";
+"Remove from Favorites" = "Remove from Favourites";
+"Add to Favorites" = "Add to Favourites";
+"Credits" = "Credits";
+"Main Developer" = "Main Developer";
+"doorsfan14" = "doorsfan14";
+"Buy us a coffee" = "Buy us a coffee";
+"Wii U Region" = "Wii U Region";
+"Nintendo Update Service" = "Nintendo Update Service";
+"Invalid Nintendo update service URL" = "Invalid Nintendo update service URL";
+"Invalid Nintendo server response" = "Invalid Nintendo server response";
+"Nintendo returned no system-title metadata" = "Nintendo returned no system-title metadata";
+"Connection to Nintendo NUS failed" = "Connection to Nintendo NUS failed";
