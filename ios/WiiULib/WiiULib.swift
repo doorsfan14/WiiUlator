@@ -13,6 +13,7 @@ public final class WiiULib {
     public var memory: WiiUMemory { system.memory }
     public var cpu: PowerPCCPU { system.cpu }
     public var audio: WiiUAudio { system.audio }
+    public var kernel: CafeKernel { system.kernel }
     public private(set) var instructionCount: UInt64 = 0
     public private(set) var entryPoint: UInt32 = 0
 
@@ -29,16 +30,17 @@ public final class WiiULib {
         cpu.pc = entryPoint
     }
 
-    public var isStopped: Bool { cpu.unsupportedInstruction != 0 }
+    public var isStopped: Bool { cpu.unsupportedInstruction != 0 || kernel.exited }
     public var programCounter: UInt32 { cpu.pc }
 
     public func run(instructions count: Int) {
         guard count > 0 else { return }
         for _ in 0..<count {
             cpu.step(memory: memory)
+            if cpu.syscall != nil { kernel.dispatch(cpu: cpu, memory: memory) }
             instructionCount += 1
             system.tick()
-            if cpu.unsupportedInstruction != 0 { break }
+            if cpu.unsupportedInstruction != 0 || kernel.exited { break }
         }
     }
 
