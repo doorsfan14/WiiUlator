@@ -33,7 +33,7 @@ final class PowerPCCPU {
  }
  int base(int a){return a==0?0:r[a];} int ea(int i){return base(i&31)+(short)i;}
  int sign16(int i){return (short)(i&65535);}
- boolean cond(int i){int bo=i>>>21&31,bi=i>>>16&31;boolean crBit=((cr>>>(31-bi))&1)!=0;boolean condition=((bo&4)!=0)||(((bo&16)==0)?(crBit==((bo&8)!=0)):true);return condition&&((bo&4)!=0||!((bo&16)==0&&false));}
+ boolean cond(int i){int bo=i>>>21&31,bi=i>>>16&31;boolean ctrOk;if((bo&4)!=0)ctrOk=true;else{ctr--;ctrOk=((ctr!=0)==((bo&2)!=0));}boolean crOk=(bo&16)!=0||(((cr>>>(31-bi))&1)!=0)==((bo&8)!=0);return ctrOk&&crOk;}
  void branchCond(int i,int cur){if(cond(i)){int bd=(short)(i&0xfffc);pc=((i&2)!=0?bd:cur+bd);}if((i&1)!=0)lr=cur+4;}
  void op31(int i,EmulatorMemory m,int cur){
   int xo=i>>>1&1023,s=i>>>21&31,a=i>>>16&31,b=i>>>11&31;
