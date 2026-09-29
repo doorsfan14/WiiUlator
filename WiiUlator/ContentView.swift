@@ -1905,11 +1905,11 @@ struct LibraryGame: Identifiable, Codable, Hashable {
     var coverURL: URL? {
         switch titleID {
         case "0005000010145D00":
-            return URL(string: "https://www.mariowiki.com/Special:Redirect/file/Super_Mario_3D_World-menu_icon.png")
+            return URL(string: "https://www.spriters-resource.com/media/assets/68/68615.png")
         case "000500001010EC00":
             return URL(string: "https://www.mariowiki.com/Special:Redirect/file/Mario_Kart_8-menu_icon.png")
         case "0005000010176A00":
-            return URL(string: "https://www.mariowiki.com/Special:Redirect/file/Splatoon-menu_icon.png")
+            return URL(string: "https://www.spriters-resource.com/media/assets/67/70523.png")
         default:
             return nil
         }
