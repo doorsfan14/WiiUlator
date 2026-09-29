@@ -21,7 +21,7 @@ final class CafeKernel {
 
     void dispatch(PowerPCCPU cpu, EmulatorMemory memory) {
         int number = cpu.syscall;
-        cpu.syscall = 0;
+        cpu.syscall = -1;
         switch (number) {
             case SYS_CONSOLE_WRITE:
                 consoleWrite(cpu, memory);
