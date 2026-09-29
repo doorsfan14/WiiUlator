@@ -340,8 +340,14 @@ private struct LibraryCarouselView: View {
                                     .font(.headline)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 11)
+                                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 13, style: .continuous)
+                                            .stroke(.tint.opacity(0.28), lineWidth: 1)
+                                    }
                             }
-                            .buttonStyle(.borderedProminent)
+                            .foregroundStyle(.tint)
+                            .buttonStyle(.plain)
                             .disabled(selectedGame.isDemo)
 
                             Button {
@@ -1880,11 +1886,11 @@ struct LibraryGame: Identifiable, Codable, Hashable {
     var coverURL: URL? {
         switch titleID {
         case "0005000010145D00":
-            return URL(string: "https://art.gametdb.com/wiiu/cover/US/ARDP01.jpg")
+            return URL(string: "https://www.mariowiki.com/Special:Redirect/file/Super_Mario_3D_World-menu_icon.png")
         case "000500001010EC00":
-            return URL(string: "https://art.gametdb.com/wiiu/cover/US/AMKP01.jpg")
+            return URL(string: "https://www.mariowiki.com/Special:Redirect/file/Mario_Kart_8-menu_icon.png")
         case "0005000010176900":
-            return URL(string: "https://art.gametdb.com/wiiu/cover/US/AGMP01.jpg")
+            return URL(string: "https://www.mariowiki.com/Special:Redirect/file/Splatoon-menu_icon.png")
         default:
             return nil
         }
