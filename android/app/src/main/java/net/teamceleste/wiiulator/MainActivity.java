@@ -299,8 +299,9 @@ public final class MainActivity extends Activity {
         section("ABOUT");
         setting("About WiiUlator","Version 1.0 · Android",net.teamceleste.wiiulator.R.drawable.ic_star,v->showAbout());
         setting("Buy us a coffee","Support Team Celeste · WiiUlator is free",net.teamceleste.wiiulator.R.drawable.ic_star,v->Toast.makeText(this,"Thanks for supporting Team Celeste! Donation link coming soon.",Toast.LENGTH_LONG).show());
+
         section("CREDITS");
-        addCreditCard();
+        setting("doorsfan14","Main Developer",net.teamceleste.wiiulator.R.drawable.ic_star,v->Toast.makeText(this,"WiiUlator is developed by doorsfan14 · Team Celeste.",Toast.LENGTH_LONG).show());
     }
 
     private void setting(String title,String sub,int icon,View.OnClickListener click) {
@@ -468,50 +469,6 @@ public final class MainActivity extends Activity {
         content.addView(n);
     }
 
-    private void addCreditCard() {
-        MaterialCardView c=card();
-        LinearLayout row=new LinearLayout(this);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(16),dp(12),dp(16),dp(12));
-
-        ImageView avatar=new ImageView(this);
-        avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        GradientDrawable avatarBackground=new GradientDrawable();
-        avatarBackground.setShape(GradientDrawable.OVAL);
-        avatarBackground.setColor(SURFACE);
-        avatar.setBackground(avatarBackground);
-        avatar.setClipToOutline(true);
-        row.addView(avatar,new LinearLayout.LayoutParams(dp(56),dp(56)));
-
-        LinearLayout identity=new LinearLayout(this);
-        identity.setOrientation(LinearLayout.VERTICAL);
-        identity.setPadding(dp(14),0,dp(8),0);
-        TextView name=text("doorsfan14",17,TEXT);
-        name.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
-        TextView role=text("Main Developer",13,MUTED);
-        identity.addView(name,new LinearLayout.LayoutParams(-1,dp(27)));
-        identity.addView(role,new LinearLayout.LayoutParams(-1,dp(22)));
-        row.addView(identity,new LinearLayout.LayoutParams(0,dp(56),1));
-        c.addView(row);
-        LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,dp(82));
-        p.bottomMargin=dp(8);
-        content.addView(c,p);
-
-        new Thread(() -> {
-            try {
-                java.net.URL url=new java.net.URL("https://avatars.githubusercontent.com/u/291543116?v=4");
-                java.net.HttpURLConnection connection=(java.net.HttpURLConnection)url.openConnection();
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
-                connection.setInstanceFollowRedirects(true);
-                try(InputStream in=connection.getInputStream()) {
-                    Bitmap bitmap=BitmapFactory.decodeStream(in);
-                    if(bitmap!=null) runOnUiThread(() -> avatar.setImageBitmap(bitmap));
-                }
-            } catch(Exception ignored) {}
-        }).start();
-    }
-
     private void showAbout() {
         subHeader("About WiiUlator");
         section("APP");
@@ -545,8 +502,6 @@ public final class MainActivity extends Activity {
             int dot=path==null?-1:path.lastIndexOf('.');
             if(dot>=0 && dot+1<path.length()) extension=path.substring(dot+1).toLowerCase(Locale.ROOT);
 
-            // The filename is deliberately ignored for game identification.
-            // Wii U title metadata/content determines the library name.
             GameDetector.Result detected=GameDetector.detect(data,extension);
 
             if(extension.equals("rpx") || extension.equals("elf")) {
@@ -563,8 +518,7 @@ public final class MainActivity extends Activity {
     }
 
     static byte[] readAll(InputStream in)throws IOException {
-        ByteArrayOutputStream b=new ByteArrayOutputStream();
-        byte[] x=new byte[65536];int n;
+        ByteArrayOutputStream b=new ByteArrayOutputStream(); byte[] x=new byte[65536]; int n;
         while((n=in.read(x))>0)b.write(x,0,n);
         return b.toByteArray();
     }
