@@ -113,3 +113,24 @@
 "Invalid Nintendo server response" = "Nintendoサーバーからの無効な応答";
 "Nintendo returned no system-title metadata" = "Nintendoからシステムタイトルのメタデータが返されませんでした";
 "Connection to Nintendo NUS failed" = "Nintendo NUSへの接続に失敗しました";
+
+
+"French" = "フランス語";
+"Auto" = "自動";
+"Native" = "ネイティブ";
+"30 FPS = Full Emulation Speed" = "30 FPS = 完全なエミュレーション速度";
+"Metal is the primary graphics backend. Vulkan is experimental and may not be available on every device or iOS version." = "Metalが主要なグラフィックスバックエンドです。Vulkanは実験的で、すべてのデバイスやiOSバージョンで利用できるとは限りません。";
+"This controls the internal emulated render resolution. It does not change the iPhone’s physical display resolution." = "エミュレーション内部のレンダリング解像度を設定します。iPhoneの物理ディスプレイ解像度は変更しません。";
+"Wii U games normally use 16:9. Select 4:3 for games or content designed for that display shape." = "Wii Uゲームは通常16:9を使用します。その表示比率向けに作られたゲームやコンテンツには4:3を選択してください。";
+"Custom button mapping will be available as the emulator input system is implemented." = "エミュレーターの入力システムが実装されると、カスタムボタン割り当てを利用できるようになります。";
+"WiiUlator does not use interface sound effects. Audio settings apply to emulated games." = "WiiUlatorはインターフェースの効果音を使用しません。オーディオ設定はエミュレートされたゲームに適用されます。";
+"Memory" = "メモリ";
+"Maximum RAM" = "最大RAM";
+"Recommended" = "推奨";
+"The recommendation is calculated from this device’s physical memory, leaving headroom for iOS and WiiUlator itself." = "推奨値はこのデバイスの物理メモリを基に計算され、iOSとWiiUlator自体のための余裕を残しています。";
+"High RAM Allocation" = "高RAM割り当て";
+"Putting a higher RAM amount than your device’s recommended memory will most likely cause crashes and game instability." = "デバイスの推奨メモリ量を超えるRAMを割り当てると、クラッシュやゲームの不安定化が発生する可能性が高くなります。";
+"PowerPC execution active" = "PowerPC実行中";
+"Enabled" = "有効";
+"Not Enabled" = "無効";
+"Imported games are copied into WiiUlator's app container at Documents/games. Game files are not included with WiiUlator." = "インポートしたゲームはWiiUlatorのアプリコンテナ内のDocuments/gamesにコピーされます。ゲームファイルはWiiUlatorに含まれていません。";
