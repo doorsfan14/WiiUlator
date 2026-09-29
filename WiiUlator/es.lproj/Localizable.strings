@@ -116,3 +116,29 @@
 "Invalid Nintendo server response" = "Respuesta no válida del servidor de Nintendo";
 "Nintendo returned no system-title metadata" = "Nintendo no devolvió metadatos de títulos del sistema";
 "Connection to Nintendo NUS failed" = "No se pudo conectar con Nintendo NUS";
+
+
+"French" = "Francés";
+"Auto" = "Automático";
+"Native" = "Nativo";
+"30 FPS = Full Emulation Speed" = "30 FPS = velocidad de emulación completa";
+"Graphics Backend" = "Motor gráfico";
+"Metal is the primary graphics backend. Vulkan is experimental and may not be available on every device or iOS version." = "Metal es el motor gráfico principal. Vulkan es experimental y puede no estar disponible en todos los dispositivos o versiones de iOS.";
+"This controls the internal emulated render resolution. It does not change the iPhone’s physical display resolution." = "Esto controla la resolución de renderizado interna de la emulación. No cambia la resolución física de la pantalla del iPhone.";
+"Wii U games normally use 16:9. Select 4:3 for games or content designed for that display shape." = "Los juegos de Wii U normalmente usan 16:9. Selecciona 4:3 para juegos o contenido diseñado para ese formato.";
+"Custom button mapping will be available as the emulator input system is implemented." = "El mapeo personalizado de botones estará disponible cuando se implemente el sistema de entrada del emulador.";
+"WiiUlator does not use interface sound effects. Audio settings apply to emulated games." = "WiiUlator no usa efectos de sonido de interfaz. Los ajustes de audio se aplican a los juegos emulados.";
+"Memory" = "Memoria";
+"Maximum RAM" = "RAM máxima";
+"Recommended" = "Recomendado";
+"The recommendation is calculated from this device’s physical memory, leaving headroom for iOS and WiiUlator itself." = "La recomendación se calcula según la memoria física de este dispositivo, dejando margen para iOS y WiiUlator.";
+"High RAM Allocation" = "Asignación de RAM alta";
+"Putting a higher RAM amount than your device’s recommended memory will most likely cause crashes and game instability." = "Asignar más RAM que la cantidad recomendada para tu dispositivo probablemente causará cierres y problemas de estabilidad en los juegos.";
+"PowerPC execution active" = "Ejecución PowerPC activa";
+"Enabled" = "Activado";
+"Not Enabled" = "No activado";
+"Imported games are copied into WiiUlator's app container at Documents/games. Game files are not included with WiiUlator." = "Los juegos importados se copian en el contenedor de la app de WiiUlator, en Documents/games. Los archivos de juego no se incluyen con WiiUlator.";
+"1280x720" = "1280x720";
+"1600x900" = "1600x900";
+"1920x1080" = "1920x1080";
+"2560x1440" = "2560x1440";
