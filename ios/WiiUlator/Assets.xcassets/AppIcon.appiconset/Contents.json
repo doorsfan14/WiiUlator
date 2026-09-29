@@ -1,38 +1,98 @@
 {
-  "images" : [
+  "images": [
     {
-      "filename" : "WiiUlator-60@2x.png",
-      "idiom" : "iphone",
-      "scale" : "2x",
-      "size" : "60x60"
+      "filename": "WiiUlator-60@2x.png",
+      "idiom": "iphone",
+      "scale": "2x",
+      "size": "60x60"
     },
     {
-      "filename" : "WiiUlator-60@3x.png",
-      "idiom" : "iphone",
-      "scale" : "3x",
-      "size" : "60x60"
+      "filename": "WiiUlator-60@3x.png",
+      "idiom": "iphone",
+      "scale": "3x",
+      "size": "60x60"
     },
     {
-      "filename" : "WiiUlator-76@2x.png",
-      "idiom" : "ipad",
-      "scale" : "2x",
-      "size" : "76x76"
+      "filename": "WiiUlator-76@2x.png",
+      "idiom": "ipad",
+      "scale": "2x",
+      "size": "76x76"
     },
     {
-      "filename" : "WiiUlator-83.5@2x.png",
-      "idiom" : "ipad",
-      "scale" : "2x",
-      "size" : "83.5x83.5"
+      "filename": "WiiUlator-83.5@2x.png",
+      "idiom": "ipad",
+      "scale": "2x",
+      "size": "83.5x83.5"
     },
     {
-      "filename" : "WiiUlator-1024.png",
-      "idiom" : "ios-marketing",
-      "scale" : "1x",
-      "size" : "1024x1024"
+      "filename": "WiiUlator-1024.png",
+      "idiom": "ios-marketing",
+      "scale": "1x",
+      "size": "1024x1024"
+    },
+    {
+      "filename": "WiiUlator-60@2x-dark.png",
+      "idiom": "iphone",
+      "scale": "2x",
+      "size": "60x60",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ]
+    },
+    {
+      "filename": "WiiUlator-60@3x-dark.png",
+      "idiom": "iphone",
+      "scale": "3x",
+      "size": "60x60",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ]
+    },
+    {
+      "filename": "WiiUlator-76@2x-dark.png",
+      "idiom": "ipad",
+      "scale": "2x",
+      "size": "76x76",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ]
+    },
+    {
+      "filename": "WiiUlator-83.5@2x-dark.png",
+      "idiom": "ipad",
+      "scale": "2x",
+      "size": "83.5x83.5",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ]
+    },
+    {
+      "filename": "WiiUlator-1024-dark.png",
+      "idiom": "ios-marketing",
+      "scale": "1x",
+      "size": "1024x1024",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ]
     }
   ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
+  "info": {
+    "author": "xcode",
+    "version": 1
   }
 }
