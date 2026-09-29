@@ -9,21 +9,33 @@ final class PowerPCCPU {
    case 8: {int d=ins>>>21&31,a=ins>>>16&31;r[d]=(short)(ins&65535)-r[a];break;}
    case 14: {int d=ins>>>21&31,a=ins>>>16&31;r[d]=base(a)+sign16(ins);break;}
    case 15: {int d=ins>>>21&31,a=ins>>>16&31;r[d]=base(a)+(sign16(ins)<<16);break;}
+   case 10:{int a=ins>>>16&31;setCRUnsigned((ins>>>21)&7,r[a],ins&65535);break;}
+   case 11:{int a=ins>>>16&31;setCRSigned((ins>>>21)&7,r[a],sign16(ins));break;}
+   case 12:{int d=ins>>>21&31,a=ins>>>16&31;r[d]=r[a]+sign16(ins);break;}
+   case 13:{int d=ins>>>21&31,a=ins>>>16&31;r[d]=r[a]+sign16(ins);setCR0(r[d]);break;}
    case 16: branchCond(ins,cur);break;
    case 17: syscall=r[0];break;
    case 18: {int li=ins&0x03fffffc;int t=((li&0x02000000)!=0?li|0xfc000000:li);if((ins&2)!=0)pc=t;if((ins&2)==0)pc=cur+t;if((ins&1)!=0)lr=cur+4;break;}
    case 24:{int s=ins>>>21&31,d=ins>>>16&31;r[d]=r[s]|(ins&65535);break;}
    case 25:{int s=ins>>>21&31,d=ins>>>16&31;r[d]=r[s]|((ins&65535)<<16);break;}
    case 26:{int s=ins>>>21&31,d=ins>>>16&31;r[d]=r[s]^(ins&65535);break;}
-   case 28:{int s=ins>>>21&31,d=ins>>>16&31;int v=r[s]&(ins&65535);r[d]=v;cr=(cr&0x0fffffff)|((v==0?2:(v<0?8:4))<<28);break;}
+   case 28:{int s=ins>>>21&31,d=ins>>>16&31;int v=r[s]&(ins&65535);r[d]=v;setCR0(v);break;}
+   case 20:{int s=ins>>>21&31,d=ins>>>16&31,sh=ins>>>11&31,mb=ins>>>6&31,me=ins>>>1&31;int mask=mask(mb,me),rot=Integer.rotateLeft(r[s],sh);r[d]=(r[d]&~mask)|(rot&mask);if((ins&1)!=0)setCR0(r[d]);break;}
+   case 21:{int s=ins>>>21&31,d=ins>>>16&31,sh=ins>>>11&31,mb=ins>>>6&31,me=ins>>>1&31;int v=Integer.rotateLeft(r[s],sh)&mask(mb,me);r[d]=v;if((ins&1)!=0)setCR0(v);break;}
+   case 23:{int s=ins>>>21&31,d=ins>>>16&31,b=ins>>>11&31,mb=ins>>>6&31,me=ins>>>1&31;int v=Integer.rotateLeft(r[s],r[b]&31)&mask(mb,me);r[d]=v;if((ins&1)!=0)setCR0(v);break;}
    case 32:r[ins>>>21&31]=m.read32(ea(ins));break;
    case 33:{int a=ea(ins);r[ins>>>16&31]=a;r[ins>>>21&31]=m.read32(a);break;}
    case 34:r[ins>>>21&31]=m.readU8(ea(ins));break;
+   case 35:{int a=ea(ins);r[ins>>>16&31]=a;r[ins>>>21&31]=m.readU8(a);break;}
    case 36:m.write32(ea(ins),r[ins>>>21&31]);break;
    case 37:{int a=ea(ins);r[ins>>>16&31]=a;m.write32(a,r[ins>>>21&31]);break;}
    case 38:m.write8(ea(ins),r[ins>>>21&31]);break;
    case 40:r[ins>>>21&31]=m.read16(ea(ins));break;
+   case 41:{int a=ea(ins);r[ins>>>16&31]=a;r[ins>>>21&31]=m.read16(a);break;}
+   case 42:r[ins>>>21&31]=(short)m.read16(ea(ins));break;
+   case 43:{int a=ea(ins);r[ins>>>16&31]=a;r[ins>>>21&31]=(short)m.read16(a);break;}
    case 44:m.write16(ea(ins),r[ins>>>21&31]);break;
+   case 45:{int a=ea(ins);r[ins>>>16&31]=a;m.write16(a,r[ins>>>21&31]);break;}
    case 46:{int a=ea(ins),d=ins>>>21&31;for(int i=d;i<32;i++){r[i]=m.read32(a);a+=4;}break;}
    case 47:{int a=ea(ins),s=ins>>>21&31;for(int i=s;i<32;i++){m.write32(a,r[i]);a+=4;}break;}
    case 31:op31(ins,m,cur);break;
@@ -31,7 +43,13 @@ final class PowerPCCPU {
    default:unsupported=ins;break;
   }
  }
- int base(int a){return a==0?0:r[a];} int ea(int i){return base(i&31)+(short)i;}
+ int base(int a){return a==0?0:r[a];} int ea(int i){return base(i>>>16&31)+sign16(i);}
+ int mask(int mb,int me){int left=0xFFFFFFFF>>>mb;if(mb<=me)return left&~(0xFFFFFFFF>>>(me+1));return left|~(0xFFFFFFFF>>>(me+1));}
+ void setCR0(int v){cr=(cr&0x0FFFFFFF)|((v==0?2:(v<0?8:4))<<28);}
+ void setCRSigned(int field,int a,int b){setCRField(field,a==b?2:(a<b?8:4));}
+ void setCRUnsigned(int field,int a,int b){setCRField(field,a==b?2:(Integer.compareUnsigned(a,b)<0?8:4));}
+ void setCRField(int field,int value){int shift=(7-field)*4;cr=(cr&~(0xF<<shift))|(value<<shift);}
+
  int sign16(int i){return (short)(i&65535);}
  boolean cond(int i){int bo=i>>>21&31,bi=i>>>16&31;boolean ctrOk;if((bo&4)!=0)ctrOk=true;else{ctr--;ctrOk=((ctr!=0)==((bo&2)!=0));}boolean crOk=(bo&16)!=0||(((cr>>>(31-bi))&1)!=0)==((bo&8)!=0);return ctrOk&&crOk;}
  void branchCond(int i,int cur){if(cond(i)){int bd=(short)(i&0xfffc);pc=((i&2)!=0?bd:cur+bd);}if((i&1)!=0)lr=cur+4;}
