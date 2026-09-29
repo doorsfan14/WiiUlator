@@ -53,7 +53,7 @@ public final class PowerPCCPU {
             branchConditional(instruction, currentPC: currentPC)
 
         case 17:
-            syscall = UInt32((instruction >> 5) & 0x1FFFFF)
+            syscall = registers[0]
 
         case 18:
             let li = instruction & 0x03FFFFFC
@@ -158,6 +158,11 @@ public final class PowerPCCPU {
         default:
             unsupportedInstruction = instruction
         }
+    }
+
+    func consumeSyscall() -> UInt32? {
+        defer { syscall = nil }
+        return syscall
     }
 
     private func base(_ index: Int) -> UInt32 {
