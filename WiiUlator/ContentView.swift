@@ -56,6 +56,7 @@ struct ContentView: View {
 
 struct LibraryView: View {
     @StateObject private var library = GameLibraryStore.shared
+    @State private var selectedGameID: UUID?
     @State private var showingImporter = false
     @State private var searchText = ""
 
@@ -64,14 +65,55 @@ struct LibraryView: View {
         guard !query.isEmpty else { return library.games }
         return library.games.filter {
             $0.name.localizedCaseInsensitiveContains(query) ||
-            $0.provider.localizedCaseInsensitiveContains(query)
+            $0.provider.localizedCaseInsensitiveContains(query) ||
+            $0.version.localizedCaseInsensitiveContains(query)
         }
+    }
+
+    private var selectedGame: LibraryGame? {
+        guard !filteredGames.isEmpty else { return nil }
+        if let selectedGameID,
+           let game = filteredGames.first(where: { $0.id == selectedGameID }) {
+            return game
+        }
+        return filteredGames.first
     }
 
     var body: some View {
         NavigationStack {
             Group {
-                if filteredGames.isEmpty {
+                if let selectedGame {
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            if filteredGames.count > 1 {
+                                Text("Swipe to browse games")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.top, 4)
+                                    .padding(.bottom, 10)
+                            }
+
+                            TabView(selection: Binding(
+                                get: { selectedGameID ?? filteredGames.first?.id },
+                                set: { selectedGameID = $0 }
+                            )) {
+                                ForEach(filteredGames) { game in
+                                    LibraryHeroGameView(
+                                        game: game,
+                                        isFavorite: library.isFavorite(game),
+                                        onFavorite: {
+                                            library.toggleFavorite(game)
+                                        }
+                                    )
+                                    .tag(Optional(game.id))
+                                    .padding(.horizontal, 22)
+                                }
+                            }
+                            .tabViewStyle(.page(indexDisplayMode: filteredGames.count > 1 ? .automatic : .never))
+                            .frame(height: 590)
+                        }
+                    }
+                } else {
                     VStack(spacing: 10) {
                         Image(systemName: searchText.isEmpty ? "gamecontroller" : "magnifyingglass")
                             .font(.system(size: 34))
@@ -87,49 +129,6 @@ struct LibraryView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding()
-                } else {
-                    List {
-                        ForEach(filteredGames) { game in
-                            HStack(spacing: 12) {
-                                NavigationLink {
-                                    DemoGameView(game: game)
-                                } label: {
-                                    HStack(spacing: 12) {
-                                        GameIconView(game: game)
-                                            .frame(width: 64, height: 64)
-
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text(game.name)
-                                                .font(.headline)
-
-                                            LabeledContent("Provider", value: game.provider)
-                                                .font(.subheadline)
-
-                                            if !game.version.isEmpty {
-                                                LabeledContent("Version", value: game.version)
-                                                    .font(.subheadline)
-                                            }
-                                        }
-                                    }
-                                }
-
-                                Button {
-                                    library.toggleFavorite(game)
-                                } label: {
-                                    Image(systemName: library.isFavorite(game) ? "star.fill" : "star")
-                                        .foregroundStyle(library.isFavorite(game) ? .yellow : .secondary)
-                                        .font(.title3)
-                                        .frame(width: 44, height: 44)
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel(library.isFavorite(game) ? "Remove from Favorites" : "Add to Favorites")
-                            }
-                            .padding(.vertical, 4)
-                        }
-                        .onDelete { offsets in
-                            library.remove(at: offsets, from: filteredGames)
-                        }
-                    }
                 }
             }
             .navigationTitle("Library")
@@ -142,6 +141,18 @@ struct LibraryView: View {
                 }
                 .accessibilityLabel("Import Game")
             )
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    if let selectedGame {
+                        Button {
+                            library.toggleFavorite(selectedGame)
+                        } label: {
+                            Image(systemName: library.isFavorite(selectedGame) ? "star.fill" : "star")
+                        }
+                        .accessibilityLabel(library.isFavorite(selectedGame) ? "Remove from Favorites" : "Add to Favorites")
+                    }
+                }
+            }
             .fileImporter(
                 isPresented: $showingImporter,
                 allowedContentTypes: WiiUFileTypes.supported,
@@ -171,7 +182,174 @@ struct LibraryView: View {
             }
             .onAppear {
                 library.prepareGamesFolder()
+                if selectedGameID == nil {
+                    selectedGameID = library.games.first?.id
+                }
             }
+            .onChange(of: library.games) { games in
+                if let selectedGameID, games.contains(where: { $0.id == selectedGameID }) {
+                    return
+                }
+                self.selectedGameID = games.first?.id
+            }
+        }
+    }
+}
+
+private struct LibraryHeroGameView: View {
+    let game: LibraryGame
+    let isFavorite: Bool
+    let onFavorite: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ZStack(alignment: .top) {
+                GameCoverView(game: game)
+                    .frame(maxWidth: 355)
+                    .aspectRatio(1, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                    .shadow(color: .black.opacity(0.18), radius: 22, y: 12)
+
+                GameCoverView(game: game)
+                    .frame(maxWidth: 355)
+                    .aspectRatio(1, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                    .scaleEffect(x: 1, y: -1)
+                    .opacity(0.24)
+                    .blur(radius: 1.2)
+                    .mask(
+                        LinearGradient(
+                            stops: [
+                                .init(color: .white, location: 0),
+                                .init(color: .white.opacity(0.38), location: 0.48),
+                                .init(color: .clear, location: 1)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .offset(y: 360)
+                    .allowsHitTesting(false)
+            }
+            .frame(maxWidth: 355)
+            .frame(height: 500, alignment: .top)
+            .clipped()
+
+            VStack(spacing: 5) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(game.name)
+                        .font(.title2.weight(.bold))
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+
+                    if isFavorite {
+                        Image(systemName: "star.fill")
+                            .font(.caption)
+                            .foregroundStyle(.yellow)
+                    }
+                }
+
+                Text(game.provider)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                if !game.version.isEmpty {
+                    Text("Version \(game.version)")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+
+                if let titleID = game.titleID, !titleID.isEmpty {
+                    Text(titleID)
+                        .font(.caption2.monospaced())
+                        .foregroundStyle(.tertiary)
+                }
+
+                HStack(spacing: 10) {
+                    NavigationLink {
+                        DemoGameView(game: game)
+                    } label: {
+                        Label("Launch", systemImage: "play.fill")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(game.isDemo)
+
+                    Button {
+                        onFavorite()
+                    } label: {
+                        Image(systemName: isFavorite ? "star.fill" : "star")
+                            .frame(width: 46, height: 46)
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel(isFavorite ? "Remove from Favorites" : "Add to Favorites")
+                }
+                .padding(.top, 5)
+            }
+            .padding(.horizontal, 4)
+            .background(.clear)
+        }
+    }
+}
+
+private struct GameCoverView: View {
+    let game: LibraryGame
+
+    private var accent: Color {
+        switch game.coverStyle {
+        case 0: return .blue
+        case 1: return .orange
+        default: return .purple
+        }
+    }
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [accent.opacity(0.92), .black.opacity(0.86)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            Circle()
+                .fill(.white.opacity(0.13))
+                .frame(width: 230)
+                .blur(radius: 1)
+                .offset(x: 95, y: -105)
+
+            Circle()
+                .fill(.black.opacity(0.22))
+                .frame(width: 260)
+                .offset(x: -100, y: 120)
+
+            VStack(spacing: 12) {
+                Image(systemName: game.coverSymbol)
+                    .font(.system(size: 78, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.92))
+
+                Text(game.name)
+                    .font(.system(size: 30, weight: .heavy, design: .rounded))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.55)
+                    .lineLimit(3)
+                    .padding(.horizontal, 24)
+
+                if game.isDemo {
+                    Text("WiiUlator Demo")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.78))
+                        .textCase(.uppercase)
+                }
+            }
+            .padding(26)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(.white.opacity(0.14), lineWidth: 1)
         }
     }
 }
@@ -1611,6 +1789,28 @@ struct LibraryGame: Identifiable, Codable, Hashable {
     var path: String
     var isDemo: Bool
 
+    var coverStyle: Int {
+        if isDemo {
+            switch name {
+            case "Super Mario 3D World": return 0
+            case "Mario Kart 8": return 1
+            default: return 2
+            }
+        }
+        return abs(name.hashValue) % 3
+    }
+
+    var coverSymbol: String {
+        if isDemo {
+            switch name {
+            case "Super Mario 3D World": return "star.fill"
+            case "Mario Kart 8": return "car.fill"
+            default: return "paintbrush.fill"
+            }
+        }
+        return "gamecontroller.fill"
+    }
+
     init(id: UUID = UUID(), name: String, provider: String = "Unknown", version: String = "", titleID: String? = nil, path: String, isDemo: Bool = false) {
         self.id = id
         self.name = name
@@ -1641,6 +1841,39 @@ final class GameLibraryStore: ObservableObject {
         load()
         loadFavorites()
         prepareGamesFolder()
+        seedDemoGamesIfNeeded()
+    }
+
+    private func seedDemoGamesIfNeeded() {
+        guard games.isEmpty else { return }
+
+        games = [
+            LibraryGame(
+                name: "Super Mario 3D World",
+                provider: "Nintendo",
+                version: "1.0.0",
+                titleID: "DEMO-MARIO3D",
+                path: Self.gamesFolderURL.appendingPathComponent("Demo-Super-Mario-3D-World.rpx").path,
+                isDemo: true
+            ),
+            LibraryGame(
+                name: "Mario Kart 8",
+                provider: "Nintendo",
+                version: "1.0.0",
+                titleID: "DEMO-MARIOKART",
+                path: Self.gamesFolderURL.appendingPathComponent("Demo-Mario-Kart-8.rpx").path,
+                isDemo: true
+            ),
+            LibraryGame(
+                name: "Splatoon",
+                provider: "Nintendo",
+                version: "1.0.0",
+                titleID: "DEMO-SPLATOON",
+                path: Self.gamesFolderURL.appendingPathComponent("Demo-Splatoon.rpx").path,
+                isDemo: true
+            )
+        ]
+        save()
     }
 
     func isFavorite(_ game: LibraryGame) -> Bool {
