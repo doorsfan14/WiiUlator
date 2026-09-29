@@ -30,7 +30,7 @@ final class WiiUSystem {
         if (instructions <= 0) return;
         for (int i = 0; i < instructions; i++) {
             cpu.step(memory);
-            if (cpu.syscall != 0 || cpu.last == 0x44000002) kernel.dispatch(cpu, memory);
+            if (cpu.syscall >= 0) kernel.dispatch(cpu, memory);
             cycles++;
             if (cpu.unsupported != 0 || kernel.exited) break;
         }
